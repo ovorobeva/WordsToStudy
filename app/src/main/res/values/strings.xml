@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">WordsToStudy</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="configure">Configure</string>
+    <string name="add_widget">Add widget</string>
+    <string name="updPeriodLbl">Выбрать период обновления</string>
+    <string name="oncePer24hrsUpdrBtn">Раз в сутки</string>
+    <string name="oncePer3DaysUpdrBtn">Раз в три дня</string>
+    <string name="oncePerWeekUpdrBtn">Раз в неделю</string>
+    <string name="customPeriodBtn">Задать свой</string>
+</resources>
