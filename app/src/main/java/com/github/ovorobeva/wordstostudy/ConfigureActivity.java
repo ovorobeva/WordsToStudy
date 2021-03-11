@@ -97,7 +97,7 @@ public class ConfigureActivity extends Activity {
     static int loadWordsCountFromPref(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY, count);
+        return prefs.getInt(PREF_PREFIX_KEY, 1);
     }
 
     //todo: to delete other preferences like title value

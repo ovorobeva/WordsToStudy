@@ -13,11 +13,17 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.ArrayList;
+
 public class Words {
-    private static String words;
+    private static String resp;
+    private static String words;/*
+    private static ArrayList<String> words;*/
+    private static int wordsCount;
 
     public static String requestRandomWord(Context context) {
 
+        wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
 // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
         boolean isHasDictionaryDef = true;
@@ -26,16 +32,16 @@ public class Words {
                 "%2Cauxiliary-verb%2Cconjunction%2Cdefinite-article%2Cfamily-name%2Cgiven-name%2Cimperative%2" +
                 "Cproper-noun%2Cproper-noun-plural%2Csuffix%2Cverb-intransitive%2Cverb-transitive";
         //todo: to make constants for beginner, intermediate, advanced
-        String minCorpusCount="100000";
-        String maxCorpusCount="-1";
-        String minDictionaryCount="0";
-        String maxDictionaryCount="-1";
-        String minLength="2";
-        String maxLength="-1";
-        String limit=String.valueOf(ConfigureActivity.loadWordsCountFromPref(context));
-        String api_key="YOURAPIKEY";
+        String minCorpusCount = "100000";
+        String maxCorpusCount = "-1";
+        String minDictionaryCount = "0";
+        String maxDictionaryCount = "-1";
+        String minLength = "2";
+        String maxLength = "-1";
+        String limit = String.valueOf(wordsCount);
+        String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
 
-        String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef="+ isHasDictionaryDef +
+        String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=" + isHasDictionaryDef +
                 "&includePartOfSpeech=" + includePartOfSpeech +
                 "&excludePartOfSpeech=" + excludePartOfSpeech +
                 "&minCorpusCount=" + minCorpusCount +
@@ -46,6 +52,7 @@ public class Words {
                 "&maxLength=" + maxLength +
                 "&limit=" + limit +
                 "&api_key=" + api_key;
+        Log.d("URL", url);
         //String url = "https://random-words-api.vercel.app/word";
 
 // Request a string response from the provided URL.
@@ -54,27 +61,33 @@ public class Words {
                     @Override
                     public void onResponse(String response) {
                         try {
-                            words = new JSONArray(response).getJSONObject(0).getString("word");
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received. The word is: " + words);
+                            resp = new JSONArray(response).getJSONObject(0).getString("word");
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            words = "undefined";
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is incorrect, new word is undefined");
                         }
-
+                        Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received: " + resp);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request");
+                resp = error.getMessage();
+                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + resp);
             }
         });
         queue.add(stringRequest);
-        return words;
+
+        return resp;
     }
 
-    public static String getWords(Context context) {
-        words = requestRandomWord(context);
+    public static String getWords(Context context) {/*
+        public static ArrayList<String> getWords(Context context) {*/
+        String response = requestRandomWord(context);
+        Log.d("TAG", "getWords: " + response);
+               /* for (int i = 0; i < wordsCount; i++) {
+                    words.add(response);
+                }*/
+        words = response;
+
         return words;
     }
 }
