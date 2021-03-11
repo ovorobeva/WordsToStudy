@@ -14,16 +14,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Words {
     private static String resp;
-    private static String words;/*
-    private static ArrayList<String> words;*/
-    private static int wordsCount;
 
-    public static String requestRandomWord(Context context) {
+    public static String requestRandomWord(Context context, int wordsCount) {
 
-        wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
 // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
         boolean isHasDictionaryDef = true;
@@ -61,7 +58,11 @@ public class Words {
                     @Override
                     public void onResponse(String response) {
                         try {
-                            resp = new JSONArray(response).getJSONObject(0).getString("word");
+                            JSONArray jsonResponse = new JSONArray(response);
+                            resp = "";
+                            for (int i = 0; i < wordsCount; i++) {
+                                resp += jsonResponse.getJSONObject(i).getString("word") + "\n";
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -79,15 +80,25 @@ public class Words {
         return resp;
     }
 
-    public static String getWords(Context context) {/*
-        public static ArrayList<String> getWords(Context context) {*/
-        String response = requestRandomWord(context);
-        Log.d("TAG", "getWords: " + response);
-               /* for (int i = 0; i < wordsCount; i++) {
-                    words.add(response);
-                }*/
-        words = response;
+    public static ArrayList<String> getWords(Context context) {
 
+        int wordsCount = 3;
+        ArrayList<String> words = new ArrayList<>();
+
+        wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+        String response = requestRandomWord(context, wordsCount);
+        JSONArray jsonResp;
+        words.add(response);
+        Log.d("TAG", "getWords: " + response);
+/*        try {
+            jsonResp = new JSONArray(response);
+            words.add(jsonResp.getJSONObject(0).getString("word"));
+            for (int i = 0; i < wordsCount; i++) {
+                words.add(jsonResp.getJSONObject(i).getString("word"));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }*/
         return words;
     }
 }

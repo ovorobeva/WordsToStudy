@@ -34,8 +34,8 @@ public class AppWidget extends AppWidgetProvider {
 
     private static final String ACTION_SCHEDULED_UPDATE = "android.appwidget.action.ACTION_SCHEDULED_UPDATE";
     //todo: to make "words" constant in string.xml
-    static private String text;/*
-    static private ArrayList<String> text;*/
+ //   static private String text;
+    static private ArrayList<String> text;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -45,8 +45,7 @@ public class AppWidget extends AppWidgetProvider {
         Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Getword called: New text value for the widget ID " + appWidgetId + " is: " + text);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-        views.setTextViewText(R.id.appwidget_text, text);/*
-        views.setTextViewText(R.id.appwidget_text, text.toString());*/
+        views.setTextViewText(R.id.appwidget_text, text.toString());
         Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "New text set to the widget ID " + appWidgetId + ". The new word is: " + text);
 
 
@@ -77,7 +76,7 @@ public class AppWidget extends AppWidgetProvider {
         //Here is the example how to use prefs for the every widget
        // int period = ConfigureActivity.loadPeriodFromPref(context, appWidgetId);
         int period = ConfigureActivity.loadPeriodFromPref(context);
-        alarmManager.setExact(AlarmManager.ELAPSED_REALTIME, schedule.getTimeInMillis() + period, pendingIntent);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, schedule.getTimeInMillis() + period, pendingIntent);
         Log.d(AppWidget.class.getCanonicalName() + "._scheduleNextUpdate", "Schedule for updating is set. The next update for the widget ID " + appWidgetId + " will be done in " + period + "ms");
     }
 
