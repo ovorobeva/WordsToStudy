@@ -7,24 +7,13 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import static com.github.ovorobeva.wordstostudy.Words.getWords;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Implementation of App Widget functionality.
@@ -35,13 +24,42 @@ public class AppWidget extends AppWidgetProvider {
     private static final String ACTION_SCHEDULED_UPDATE = "android.appwidget.action.ACTION_SCHEDULED_UPDATE";
     //todo: to make "words" constant in string.xml
  //   static private String text;
-    static private ArrayList<String> text;
+    static private List<String> text;
+    Words words;
+
+    void updateTextForWidget(Context context, AppWidgetManager appWidgetManager,
+                                int appWidgetId) {
+        // Construct the RemoteViews object
+
+        text = words.getWords();
+        Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Getword called: New text value for the widget ID " + appWidgetId + " is: " + text);
+
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
+        views.setTextViewText(R.id.appwidget_text, text.toString());
+        Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "New text set to the widget ID " + appWidgetId + ". The new word is: " + text);
+
+
+        // Opens the config activity by click on widget
+        Intent configIntent = new Intent(context, ConfigureActivity.class);
+        configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
+        configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+
+        PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
+        views.setOnClickPendingIntent(R.id.main_layout, pIntent);
+        //todo: to fix back button
+
+
+        // Instruct the widget manager to update the widget
+        appWidgetManager.updateAppWidget(appWidgetId, views);
+        Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Widget ID " + appWidgetId + " is updated");
+
+    }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         // Construct the RemoteViews object
 
-        text = getWords(context);
+        text = words.getWords();
         Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Getword called: New text value for the widget ID " + appWidgetId + " is: " + text);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
@@ -107,11 +125,15 @@ public class AppWidget extends AppWidgetProvider {
     public void onEnabled(Context context) {
         // Enter relevant functionality for when the first widget is created
         Log.d(AppWidget.class.getCanonicalName() + ".onEnabled", "The first widget is created");
+        words = new Words(context);
+        text = words.getWords();
     }
 
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
+        words = null;
+        System.gc();
         Log.d(AppWidget.class.getCanonicalName() + ".onDisabled", "The last widget is disabled");
     }
 

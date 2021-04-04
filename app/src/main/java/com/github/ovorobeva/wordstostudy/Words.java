@@ -3,26 +3,33 @@ package com.github.ovorobeva.wordstostudy;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
+import static com.github.ovorobeva.wordstostudy.Integration.getResponseArray;
+import static com.github.ovorobeva.wordstostudy.Integration.sendRequest;
+
 public class Words {
-    private static String resp;
+    private static final String WORD = "word";
+    private static final String PART_OF_SPEECH = "partOfSpeech";
+    private List<String> words;
 
-    public static String requestRandomWord(Context context, int wordsCount) {
+    public List<String> getWords() {
+        return words;
+    }
 
-// Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(context);
+    public void setWords(List<String> words) {
+        this.words = words;
+    }
+
+    public Words(Context context) {
+        setWords(getWords(context));
+    }
+
+    private List<String> getRandomWords(Context context, int wordsCount){
+        List<String> words;
         boolean isHasDictionaryDef = true;
         String includePartOfSpeech = "noun%2Cadjective%2Cverb%2Cadverb%2Cidiom%2Cpast-participle";
         String excludePartOfSpeech = "interjection%2Cpronoun%2Cpreposition%2Cabbreviation%2Caffix%2Carticle" +
@@ -50,55 +57,59 @@ public class Words {
                 "&limit=" + limit +
                 "&api_key=" + api_key;
         Log.d("URL", url);
-        //String url = "https://random-words-api.vercel.app/word";
+        //
+        words = sendRequest(context, url, wordsCount, WORD);
 
-// Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            JSONArray jsonResponse = new JSONArray(response);
-                            resp = "";
-                            for (int i = 0; i < wordsCount; i++) {
-                                resp += jsonResponse.getJSONObject(i).getString("word") + "\n";
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received: " + resp);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                resp = error.getMessage();
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + resp);
-            }
-        });
-        queue.add(stringRequest);
-
-        return resp;
+        Log.d("Custom logs", "getRandomWords: " + words);
+        return words;
     }
 
-    public static ArrayList<String> getWords(Context context) {
+    private List<String> getPartOfSpeech(Context context, String word){
+        List<String> partsOfSpeech;
+        String limit = "500";
+        boolean includeRelated = false;
+        boolean useCanonical = false;
+        boolean includeTags = false;
+        String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
 
-        int wordsCount = 3;
-        ArrayList<String> words = new ArrayList<>();
+        String url = "https://api.wordnik.com/v4/word.json/" + word + "/definitions?includeRelated=" + includeRelated +
+                "&useCanonical=" + useCanonical +
+                "&includeTags=" + includeTags +
+                "&limit=" + limit +
+                "&api_key=" + api_key;
+        Log.d("URL", url);
+        //
+        partsOfSpeech = sendRequest(context, url, 0, PART_OF_SPEECH);
 
+        Log.d("Custom logs", "getPartOfSpeech: " + partsOfSpeech);
+        return partsOfSpeech;
+    }
+    private List<String> getWords(Context context) {
+        int wordsCount;
         wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
-        String response = requestRandomWord(context, wordsCount);
-        JSONArray jsonResp;
-        words.add(response);
-        Log.d("TAG", "getWords: " + response);
-/*        try {
-            jsonResp = new JSONArray(response);
-            words.add(jsonResp.getJSONObject(0).getString("word"));
-            for (int i = 0; i < wordsCount; i++) {
-                words.add(jsonResp.getJSONObject(i).getString("word"));
+        List <String> words;
+        List <String> partsOfSpeech = new LinkedList<>();
+        words = getRandomWords(context, wordsCount);
+        Iterator<String> iterator = words.iterator();
+        int removedCounter = 0;
+        Log.d("Custom logs", "getWords: Starting looking for parts of speech for words: \n" + words);
+
+        while (iterator.hasNext()){
+            String word = iterator.next();
+            partsOfSpeech.clear();
+            partsOfSpeech = getPartOfSpeech(context, word.toLowerCase());
+            Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
+            for (String parOfSpeech: partsOfSpeech){
+                if (!(parOfSpeech.equals("noun") || parOfSpeech.equals("adjective") || parOfSpeech.equals("adverb")
+                        || parOfSpeech.equals("idiom") || parOfSpeech.equals("past-participle"))){
+                    removedCounter++;
+                    Log.d("Custom logs", "getWords: Removing the word " + word + " because of part of speech " + parOfSpeech + ". The count of deleted words is " + removedCounter);
+                    iterator.remove();
+                    break;
+                }
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }*/
+        }
+        Log.d("TAG", "getWords: " + words);
         return words;
     }
 }
