@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.github.ovorobeva.wordstostudy.Integration.getResponseArray;
 import static com.github.ovorobeva.wordstostudy.Integration.sendRequest;
 
 public class Words {
@@ -57,8 +56,9 @@ public class Words {
                 "&limit=" + limit +
                 "&api_key=" + api_key;
         Log.d("URL", url);
-        //
-        words = sendRequest(context, url, wordsCount, WORD);
+
+        words = new LinkedList<>();
+        sendRequest(context, url, wordsCount, WORD, words);
 
         Log.d("Custom logs", "getRandomWords: " + words);
         return words;
@@ -78,8 +78,9 @@ public class Words {
                 "&limit=" + limit +
                 "&api_key=" + api_key;
         Log.d("URL", url);
-        //
-        partsOfSpeech = sendRequest(context, url, 0, PART_OF_SPEECH);
+
+        partsOfSpeech = new LinkedList<>();
+        sendRequest(context, url, 0, PART_OF_SPEECH, partsOfSpeech);
 
         Log.d("Custom logs", "getPartOfSpeech: " + partsOfSpeech);
         return partsOfSpeech;

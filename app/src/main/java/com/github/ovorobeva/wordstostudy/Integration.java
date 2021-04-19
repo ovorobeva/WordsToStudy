@@ -16,9 +16,11 @@ import org.json.JSONException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.security.auth.callback.Callback;
+
 public class Integration {
     private static final String WORD = "word";
-    static private LinkedList<String> responseArray = new LinkedList<>();;
+    static private LinkedList<String> responseArray = new LinkedList<>();
 
     public static void addValueToResponseArray(String value) {
         responseArray.add(value);
@@ -28,7 +30,7 @@ public class Integration {
         return responseArray;
     }
 
-    public static List<String> sendRequest(Context context, String url, int count, String value) {
+    public static void sendRequest(Context context, String url, int count, String value, List<String> callback) {
         //public static ArrayList<String> requestRandomWord(Context context, int wordsCount) {
 
 
@@ -40,29 +42,34 @@ public class Integration {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        List<String> array = new LinkedList<>();
                         try {
                             int privateCount = count;
                             JSONArray jsonResponse = new JSONArray(response);
-                            responseArray.clear();
+                            //responseArray.clear();
                             if (privateCount == 0) privateCount = jsonResponse.length();
                             for (int i = 0; i < privateCount; i++) {
-                                addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
+                                array.add(jsonResponse.getJSONObject(i).getString(value));
+                                //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Log.d(this.getClass().getCanonicalName() + ".requestRandomWord", "Response is received: " + getResponseArray());
+                        callback.addAll(array);
+                        Log.d(this.getClass().getCanonicalName() + ".requestRandomWord", "Response is received: " + callback);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                Log.d("resp", "onResponse: " + error.getMessage());
                 responseArray.clear();
                 addValueToResponseArray(error.getMessage());
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + getResponseArray());
+                callback.addAll(responseArray);
+                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + callback);
             }
         });
         queue.add(stringRequest);
-        return responseArray;
+    //    return responseArray;
     }
 }
 
