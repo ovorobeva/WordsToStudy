@@ -22,6 +22,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 
 import static com.github.ovorobeva.wordstostudy.Words.getWords;
 
@@ -33,18 +35,18 @@ public class AppWidget extends AppWidgetProvider {
 
     private static final String ACTION_SCHEDULED_UPDATE = "android.appwidget.action.ACTION_SCHEDULED_UPDATE";
     //todo: to make "words" constant in string.xml
-    static private String text = "Words";
+    static private List<String> text = new LinkedList<>();
     private PendingIntent service = null;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         // Construct the RemoteViews object
 
-        text = getWords(context);
+        getWords(context, text);
         Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Getword called: New text value for the widget ID " + appWidgetId + " is: " + text);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-        views.setTextViewText(R.id.appwidget_text, text);
+        views.setTextViewText(R.id.appwidget_text, text.toString());
         Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "New text set to the widget ID " + appWidgetId + ". The new word is: " + text);
 
 

@@ -13,11 +13,14 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Words {
-    private static String words;
 
-    public static String requestRandomWord(Context context) {
+    public static void requestRandomWord(Context context, List<String> callback) {
 
+        int wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
 // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
         boolean isHasDictionaryDef = true;
@@ -32,8 +35,8 @@ public class Words {
         String maxDictionaryCount="-1";
         String minLength="2";
         String maxLength="-1";
-        String limit=String.valueOf(ConfigureActivity.loadWordsCountFromPref(context));
-        String api_key="YOURAPIKEY";
+        String limit=String.valueOf(wordsCount);
+        String api_key="55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
 
         String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef="+ isHasDictionaryDef +
                 "&includePartOfSpeech=" + includePartOfSpeech +
@@ -54,11 +57,19 @@ public class Words {
                     @Override
                     public void onResponse(String response) {
                         try {
-                            words = new JSONArray(response).getJSONObject(0).getString("word");
+                            List<String> words = new LinkedList<>();
+                            int privateCount = wordsCount;
+                            JSONArray jsonResponse = new JSONArray(response);
+
+                            if (privateCount == 0) privateCount = jsonResponse.length();
+                            for (int i = 0; i < privateCount; i++) {
+                                words.add(jsonResponse.getJSONObject(i).getString("word"));
+                                //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
+                            }
+                            callback.addAll(words);
                             Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received. The word is: " + words);
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            words = "undefined";
                             Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is incorrect, new word is undefined");
                         }
 
@@ -70,12 +81,10 @@ public class Words {
             }
         });
         queue.add(stringRequest);
-        return words;
     }
 
-    public static String getWords(Context context) {
-        words = requestRandomWord(context);
-        return words;
+    public static void getWords(Context context, List<String> wordlist) {
+        requestRandomWord(context, wordlist);
     }
 }
 
