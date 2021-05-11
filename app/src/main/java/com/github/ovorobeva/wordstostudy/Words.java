@@ -18,11 +18,51 @@ import java.util.List;
 
 public class Words {
 
-    public static void requestRandomWord(Context context, List<String> callback) {
+    private static final String WORD = "word";
+    private static final String PART_OF_SPEECH = "partOfSpeech";
 
-        int wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+    public static void requestRandomWord(Context context, String url, String entity, int wordsCount, List<String> callback) {
+
 // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
+
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            List<String> words = new LinkedList<>();
+                            int privateCount = wordsCount;
+                            JSONArray jsonResponse = new JSONArray(response);
+
+                            if (privateCount == 0) privateCount = jsonResponse.length();
+                            for (int i = 0; i < privateCount; i++) {
+                                words.add(jsonResponse.getJSONObject(i).getString(entity));
+                                //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
+                            }
+                            callback.clear();
+                            callback.addAll(words);
+                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received. The word is: " + words);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is incorrect, new word is undefined");
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request");
+            }
+        });
+        queue.add(stringRequest);
+    }
+
+    public static void getWords(Context context, List<String> words) {
+
+        int wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+
         boolean isHasDictionaryDef = true;
         String includePartOfSpeech = "noun%2Cadjective%2Cverb%2Cadverb%2Cidiom%2Cpast-participle";
         String excludePartOfSpeech = "interjection%2Cpronoun%2Cpreposition%2Cabbreviation%2Caffix%2Carticle" +
@@ -49,42 +89,8 @@ public class Words {
                 "&maxLength=" + maxLength +
                 "&limit=" + limit +
                 "&api_key=" + api_key;
-        //String url = "https://random-words-api.vercel.app/word";
 
-// Request a string response from the provided URL.
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            List<String> words = new LinkedList<>();
-                            int privateCount = wordsCount;
-                            JSONArray jsonResponse = new JSONArray(response);
-
-                            if (privateCount == 0) privateCount = jsonResponse.length();
-                            for (int i = 0; i < privateCount; i++) {
-                                words.add(jsonResponse.getJSONObject(i).getString("word"));
-                                //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
-                            }
-                            callback.addAll(words);
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received. The word is: " + words);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is incorrect, new word is undefined");
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request");
-            }
-        });
-        queue.add(stringRequest);
-    }
-
-    public static void getWords(Context context, List<String> wordlist) {
-        requestRandomWord(context, wordlist);
+        requestRandomWord(context, url, WORD, wordsCount, words);
     }
 }
 
