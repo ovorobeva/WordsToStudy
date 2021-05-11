@@ -21,7 +21,7 @@ public class Words {
     private static final String WORD = "word";
     private static final String PART_OF_SPEECH = "partOfSpeech";
 
-    public static void requestRandomWord(Context context, String url, String entity, int wordsCount, List<String> callback) {
+    public static void sendRequest(Context context, String url, String entity, int wordsCount, List<String> callback) {
 
 // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -90,7 +90,26 @@ public class Words {
                 "&limit=" + limit +
                 "&api_key=" + api_key;
 
-        requestRandomWord(context, url, WORD, wordsCount, words);
+        sendRequest(context, url, WORD, wordsCount, words);
+    }
+
+    private void getPartOfSpeech(Context context, String word, List<String> partsOfSpeech){
+        String limit = "500";
+        boolean includeRelated = false;
+        boolean useCanonical = false;
+        boolean includeTags = false;
+        String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
+
+        String url = "https://api.wordnik.com/v4/word.json/" + word + "/definitions?includeRelated=" + includeRelated +
+                "&useCanonical=" + useCanonical +
+                "&includeTags=" + includeTags +
+                "&limit=" + limit +
+                "&api_key=" + api_key;
+        Log.d("URL", url);
+
+        sendRequest(context, url, PART_OF_SPEECH, 0, partsOfSpeech);
+
+        Log.d("Custom logs", "getPartOfSpeech: " + partsOfSpeech);
     }
 }
 
