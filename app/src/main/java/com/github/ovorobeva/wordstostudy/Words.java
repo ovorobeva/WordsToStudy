@@ -13,6 +13,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class Words {
     private static final String WORD = "word";
     private static final String PART_OF_SPEECH = "partOfSpeech";
 
-    public static void sendRequest(Context context, String url, String entity, int wordsCount, List<String> callback) {
+    private static void sendRequest(Context context, String url, String entity, int wordsCount, List<String> callback) {
 
 // Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -59,9 +60,7 @@ public class Words {
         queue.add(stringRequest);
     }
 
-    public static void getWords(Context context, List<String> words) {
-
-        int wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+    private static void getRandomWords(Context context, List<String> words, int wordsCount) {
 
         boolean isHasDictionaryDef = true;
         String includePartOfSpeech = "noun%2Cadjective%2Cverb%2Cadverb%2Cidiom%2Cpast-participle";
@@ -93,7 +92,7 @@ public class Words {
         sendRequest(context, url, WORD, wordsCount, words);
     }
 
-    private void getPartOfSpeech(Context context, String word, List<String> partsOfSpeech){
+    private static void getPartOfSpeech(Context context, String word, List<String> partsOfSpeech){
         String limit = "500";
         boolean includeRelated = false;
         boolean useCanonical = false;
@@ -111,5 +110,36 @@ public class Words {
 
         Log.d("Custom logs", "getPartOfSpeech: " + partsOfSpeech);
     }
+
+    public static void getWords(Context context, List<String> words) {
+
+    //    List <String> words = new LinkedList<>();
+        int wordsCount;
+        wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+
+        getRandomWords(context, words, wordsCount);
+        Iterator<String> iterator = words.iterator();
+        int removedCounter = 0;
+        Log.d("Custom logs", "getWords: Starting looking for parts of speech for words: \n" + words);
+
+        while (iterator.hasNext()){
+            List <String> partsOfSpeech = new LinkedList<>();
+            String word = iterator.next();
+            getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
+            Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
+            for (String parOfSpeech: partsOfSpeech){
+                if (!(parOfSpeech.equals("noun") || parOfSpeech.equals("adjective") || parOfSpeech.equals("adverb")
+                        || parOfSpeech.equals("idiom") || parOfSpeech.equals("past-participle"))){
+                    removedCounter++;
+                    Log.d("Custom logs", "getWords: Removing the word " + word + " because of part of speech " + parOfSpeech + ". The count of deleted words is " + removedCounter);
+                    iterator.remove();
+                    break;
+                }
+            }
+     //       finalWordList = words;
+        }
+        Log.d("TAG", "getWords: " + words);
+    }
+
 }
 
