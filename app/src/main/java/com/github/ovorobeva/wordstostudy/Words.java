@@ -47,7 +47,7 @@ public class Words {
                             Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received. The word is: " + words);
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is incorrect, new word is undefined");
+                            Log.e(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Cannot parse response. Error message is: " + e.getLocalizedMessage());
                         }
 
                     }
@@ -60,7 +60,7 @@ public class Words {
         queue.add(stringRequest);
     }
 
-    private static void getRandomWords(Context context, List<String> words, int wordsCount) {
+    private static void getRandomWords(Context context, int wordsCount, List<String> words) {
 
         boolean isHasDictionaryDef = true;
         String includePartOfSpeech = "noun%2Cadjective%2Cverb%2Cadverb%2Cidiom%2Cpast-participle";
@@ -113,11 +113,10 @@ public class Words {
 
     public static void getWords(Context context, List<String> words) {
 
-    //    List <String> words = new LinkedList<>();
         int wordsCount;
         wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
 
-        getRandomWords(context, words, wordsCount);
+        getRandomWords(context, wordsCount, words);
         Iterator<String> iterator = words.iterator();
         int removedCounter = 0;
         Log.d("Custom logs", "getWords: Starting looking for parts of speech for words: \n" + words);
@@ -128,15 +127,14 @@ public class Words {
             getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
             Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
             for (String parOfSpeech: partsOfSpeech){
-                if (!(parOfSpeech.equals("noun") || parOfSpeech.equals("adjective") || parOfSpeech.equals("adverb")
-                        || parOfSpeech.equals("idiom") || parOfSpeech.equals("past-participle"))){
+                if (!(parOfSpeech.equals("noun") || !parOfSpeech.equals("adjective") || !parOfSpeech.equals("adverb")
+                        || !parOfSpeech.equals("idiom") || !parOfSpeech.equals("past-participle"))){
                     removedCounter++;
                     Log.d("Custom logs", "getWords: Removing the word " + word + " because of part of speech " + parOfSpeech + ". The count of deleted words is " + removedCounter);
                     iterator.remove();
                     break;
                 }
             }
-     //       finalWordList = words;
         }
         Log.d("TAG", "getWords: " + words);
     }
