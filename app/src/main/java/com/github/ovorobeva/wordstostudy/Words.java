@@ -70,16 +70,16 @@ public class Words {
                 "%2Cauxiliary-verb%2Cconjunction%2Cdefinite-article%2Cfamily-name%2Cgiven-name%2Cimperative%2" +
                 "Cproper-noun%2Cproper-noun-plural%2Csuffix%2Cverb-intransitive%2Cverb-transitive";
         //todo: to make constants for beginner, intermediate, advanced
-        String minCorpusCount="100000";
-        String maxCorpusCount="-1";
-        String minDictionaryCount="0";
-        String maxDictionaryCount="-1";
-        String minLength="2";
-        String maxLength="-1";
-        String limit=String.valueOf(wordsCount);
-        String api_key="55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
+        String minCorpusCount = "100000";
+        String maxCorpusCount = "-1";
+        String minDictionaryCount = "0";
+        String maxDictionaryCount = "-1";
+        String minLength = "2";
+        String maxLength = "-1";
+        String limit = String.valueOf(wordsCount);
+        String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
 
-        String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef="+ isHasDictionaryDef +
+        String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=" + isHasDictionaryDef +
                 "&includePartOfSpeech=" + includePartOfSpeech +
                 "&excludePartOfSpeech=" + excludePartOfSpeech +
                 "&minCorpusCount=" + minCorpusCount +
@@ -94,7 +94,7 @@ public class Words {
         sendRequest(context, url, WORD, wordsCount, words);
     }
 
-    private static void getPartOfSpeech(Context context, String word, List<String> partsOfSpeech){
+    private static void getPartOfSpeech(Context context, String word, List<String> partsOfSpeech) {
         String limit = "500";
         boolean includeRelated = false;
         boolean useCanonical = false;
@@ -123,19 +123,27 @@ public class Words {
         int removedCounter = 0;
         Log.d("Custom logs", "getWords: Starting removing non-matching words from the list \n" + words);
 
-        while (iterator.hasNext()){
-            List <String> partsOfSpeech = new LinkedList<>();
+        while (iterator.hasNext()) {
+            List<String> partsOfSpeech = new LinkedList<>();
             String word = iterator.next();
             Pattern pattern = Pattern.compile("[^a-zA-Z[-]]");
             Matcher matcher = pattern.matcher(word);
 
-            if (matcher.find()){iterator.remove();
+            if (matcher.find()) {
+                iterator.remove();
                 removedCounter++;
                 Log.d("Custom logs", "getWords: Removing the word " + word + " because of containing symbol " + matcher.toMatchResult() + ". The count of deleted words is " + removedCounter);
                 continue;
             }
 
-            getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
+            if (!isPartOfSpeechCorrect(context, word, partsOfSpeech)) {
+                iterator.remove();
+                removedCounter++;
+                Log.d("Custom logs", "getWords: Removing the word " + word + ". The count of deleted words is " + removedCounter);
+
+            }
+
+/*            getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
             Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
             for (String parOfSpeech: partsOfSpeech){
                 if (!(parOfSpeech.equals("noun") || !parOfSpeech.equals("adjective") || !parOfSpeech.equals("adverb")
@@ -145,9 +153,24 @@ public class Words {
                     iterator.remove();
                     break;
                 }
-            }
+            }*/
         }
         Log.d("TAG", "getWords: " + words);
+    }
+
+    private static Boolean isPartOfSpeechCorrect(Context context, String word, List<String> partsOfSpeech) {
+        boolean isCorrect = true;
+        getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
+        Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
+        for (String parOfSpeech : partsOfSpeech) {
+            if (!(parOfSpeech.equals("noun") || !parOfSpeech.equals("adjective") || !parOfSpeech.equals("adverb")
+                    || !parOfSpeech.equals("idiom") || !parOfSpeech.equals("past-participle"))) {
+                Log.d("Custom logs", "isPartOfSpeechCorrect: Removing the word " + word + " because of part of speech " + parOfSpeech);
+                isCorrect = false;
+                break;
+            }
+        }
+        return isCorrect;
     }
 
 }
