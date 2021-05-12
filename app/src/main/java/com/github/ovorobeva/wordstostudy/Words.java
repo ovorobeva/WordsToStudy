@@ -16,6 +16,8 @@ import org.json.JSONException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Words {
 
@@ -119,11 +121,20 @@ public class Words {
         getRandomWords(context, wordsCount, words);
         Iterator<String> iterator = words.iterator();
         int removedCounter = 0;
-        Log.d("Custom logs", "getWords: Starting looking for parts of speech for words: \n" + words);
+        Log.d("Custom logs", "getWords: Starting removing non-matching words from the list \n" + words);
 
         while (iterator.hasNext()){
             List <String> partsOfSpeech = new LinkedList<>();
             String word = iterator.next();
+            Pattern pattern = Pattern.compile("[^a-zA-Z[-]]");
+            Matcher matcher = pattern.matcher(word);
+
+            if (matcher.find()){iterator.remove();
+                removedCounter++;
+                Log.d("Custom logs", "getWords: Removing the word " + word + " because of containing symbol " + matcher.toMatchResult() + ". The count of deleted words is " + removedCounter);
+                continue;
+            }
+
             getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
             Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
             for (String parOfSpeech: partsOfSpeech){
