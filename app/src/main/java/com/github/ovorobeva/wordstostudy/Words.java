@@ -35,20 +35,22 @@ public class Words {
                     @Override
                     public void onResponse(String response) {
                         try {
-                            List<String> words = new LinkedList<>();
+                            List<String> responseList = new LinkedList<>();
                             int privateCount = wordsCount;
                             JSONArray jsonResponse = new JSONArray(response);
 
                             if (privateCount == 0) privateCount = jsonResponse.length();
                             for (int i = 0; i < privateCount; i++) {
-                                words.add(jsonResponse.getJSONObject(i).getString(entity));
+                                responseList.add(jsonResponse.getJSONObject(i).getString(entity));
                                 //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
                             }
                             callback.clear();
-                            callback.addAll(words);
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received. The word is: " + words);
+                            callback.addAll(responseList);
+                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received: " + responseList);
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            callback.clear();
+                            callback.add(e.getMessage());
                             Log.e(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Cannot parse response. Error message is: " + e.getLocalizedMessage());
                         }
 
@@ -56,7 +58,9 @@ public class Words {
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request");
+                callback.clear();
+                callback.add(error.getMessage());
+                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + error.getMessage());
             }
         });
         queue.add(stringRequest);
@@ -117,6 +121,7 @@ public class Words {
 
         int wordsCount;
         wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+        List<String> partsOfSpeech;
 
         getRandomWords(context, wordsCount, words);
         Iterator<String> iterator = words.iterator();
@@ -124,7 +129,7 @@ public class Words {
         Log.d("Custom logs", "getWords: Starting removing non-matching words from the list \n" + words);
 
         while (iterator.hasNext()) {
-            List<String> partsOfSpeech = new LinkedList<>();
+            partsOfSpeech = new LinkedList<>();
             String word = iterator.next();
             Pattern pattern = Pattern.compile("[^a-zA-Z[-]]");
             Matcher matcher = pattern.matcher(word);
@@ -143,28 +148,17 @@ public class Words {
 
             }
 
-/*            getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
-            Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
-            for (String parOfSpeech: partsOfSpeech){
-                if (!(parOfSpeech.equals("noun") || !parOfSpeech.equals("adjective") || !parOfSpeech.equals("adverb")
-                        || !parOfSpeech.equals("idiom") || !parOfSpeech.equals("past-participle"))){
-                    removedCounter++;
-                    Log.d("Custom logs", "getWords: Removing the word " + word + " because of part of speech " + parOfSpeech + ". The count of deleted words is " + removedCounter);
-                    iterator.remove();
-                    break;
-                }
-            }*/
         }
-        Log.d("TAG", "getWords: " + words);
+        Log.d("Custom logs", "getWords: " + words);
     }
 
     private static Boolean isPartOfSpeechCorrect(Context context, String word, List<String> partsOfSpeech) {
         boolean isCorrect = true;
         getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
         Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
+
         for (String parOfSpeech : partsOfSpeech) {
-            if (!(parOfSpeech.equals("noun") || !parOfSpeech.equals("adjective") || !parOfSpeech.equals("adverb")
-                    || !parOfSpeech.equals("idiom") || !parOfSpeech.equals("past-participle"))) {
+            if (!parOfSpeech.matches("(?i)noun|adjective|adverb|idiom|past-participle")) {
                 Log.d("Custom logs", "isPartOfSpeechCorrect: Removing the word " + word + " because of part of speech " + parOfSpeech);
                 isCorrect = false;
                 break;
