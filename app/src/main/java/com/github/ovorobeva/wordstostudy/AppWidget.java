@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,6 +27,7 @@ public class AppWidget extends AppWidgetProvider {
     //todo: to make "words" constant in string.xml
     static private List<String> text = new LinkedList<>();
     private PendingIntent service = null;
+
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {

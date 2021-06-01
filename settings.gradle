@@ -1,0 +1,5 @@
+include ':thefirstwidget'
+include ':preferenceslesson'
+include ':testmodule'
+include ':app'
+rootProject.name = "WordsToStudy"

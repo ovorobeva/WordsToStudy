@@ -3,33 +3,96 @@ package com.github.ovorobeva.wordstostudy;
 import android.content.Context;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import okhttp3.OkHttpClient;
+import retrofit2.Call;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+
 public class Words {
+
 
     private static final String WORD = "word";
     private static final String PART_OF_SPEECH = "partOfSpeech";
+    private static final OkHttpClient httpClient = new OkHttpClient();
 
     private static void sendRequest(Context context, String url, String entity, int wordsCount, List<String> callback) {
+///////////////////////////////////////////////////////////////////////
+        ////////////////////Send request using retrofit //////////////////
+        //////////////////////////////////////////////////////////////////////
+        final String BASE_URL = "https://api.wordnik.com/v4/";
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .build();
+
+        WordsApi wordsApi = retrofit.create(WordsApi.class);
+
+            Call<String> words = wordsApi.getRandomWords();
+
+            try {
+                Response<String> response = words.execute();
+                if(response.code() != 200) {
+                    Log.e("Custom logs", "sendRequest: an error occurred during request. Status code is: " + response.code() );
+                    return;
+                }
+
+                if(response.body().isEmpty()) {
+                    Log.e("Custom logs", "sendRequest: Something went wrong during request. The response is empty");
+                    return;
+                }
+                //todo: to migrate this into Words.class or to process request here
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+//////////////////////////////////Send request using OKHTTP///////////////////////////////
+        /////////////////////////////////////////////////////////////////////////
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url(url)
+                .build();
+
+        try (okhttp3.Response response = httpClient.newCall(request).execute()) {
+
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            // Get response body
+            try {
+                List<String> responseList = new LinkedList<>();
+                int privateCount = wordsCount;
+                JSONArray jsonResponse = new JSONArray(response);
+
+                if (privateCount == 0) privateCount = jsonResponse.length();
+                for (int i = 0; i < privateCount; i++) {
+                    responseList.add(jsonResponse.getJSONObject(i).getString(entity));
+                    //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
+                }
+                callback.clear();
+                callback.addAll(responseList);
+                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received: " + responseList);
+            } catch (JSONException e) {
+                e.printStackTrace();
+                callback.clear();
+                callback.add(e.getMessage());
+                Log.e(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Cannot parse response. Error message is: " + e.getLocalizedMessage());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        //////////////////////////////////////////////////////////////////////
+        /////////////////////////////////////////////////////////////////////
+
 
 // Instantiate the RequestQueue.
-        RequestQueue queue = Volley.newRequestQueue(context);
-
-
+       /* RequestQueue queue = Volley.newRequestQueue(context);
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
@@ -63,7 +126,7 @@ public class Words {
                 Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + error.getMessage());
             }
         });
-        queue.add(stringRequest);
+        queue.add(stringRequest);*/
     }
 
     private static void getRandomWords(Context context, int wordsCount, List<String> words) {
@@ -83,6 +146,7 @@ public class Words {
         String limit = String.valueOf(wordsCount);
         String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
 
+        //todo: to remove variables into a map
         String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=" + isHasDictionaryDef +
                 "&includePartOfSpeech=" + includePartOfSpeech +
                 "&excludePartOfSpeech=" + excludePartOfSpeech +
@@ -115,6 +179,7 @@ public class Words {
         sendRequest(context, url, PART_OF_SPEECH, 0, partsOfSpeech);
 
         Log.d("Custom logs", "getPartOfSpeech: " + partsOfSpeech);
+
     }
 
     public static void getWords(Context context, List<String> words) {
