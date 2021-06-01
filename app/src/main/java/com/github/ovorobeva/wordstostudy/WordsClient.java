@@ -1,32 +1,42 @@
 package com.github.ovorobeva.wordstostudy;
 
+import android.util.Log;
+
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class WordsClient {
+    private static final String TAG = "Custom logs";
     WordsApi wordsApi;
-    final String API_KEY = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
+    private final String BASE_URL = "https://api.wordnik.com/v4/";
+    private final String API_KEY = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
+
+    private final String WORD = "word";
+    private final String PART_OF_SPEECH = "partOfSpeech";
 
     public WordsClient() {
-        final String BASE_URL = "https://api.wordnik.com/v4/";
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         wordsApi = retrofit.create(WordsApi.class);
     }
 
 
-    public JSONArray getRandomWords(int wordsCount) {
+    public List<String> getRandomWords(int wordsCount) {
         Map<String, String> apiVariables = new HashMap<>();
         apiVariables.put("minCorpusCount", "100000");
         apiVariables.put("maxCorpusCount", "-1");
@@ -34,7 +44,6 @@ public class WordsClient {
         apiVariables.put("maxDictionaryCount", "-1");
         apiVariables.put("minLength", "2");
         apiVariables.put("maxLength", "-1");
-        apiVariables.put("limit", String.valueOf(wordsCount));
 
         List<String> includePartOfSpeech = new ArrayList<>();
         includePartOfSpeech.add("noun");
@@ -55,29 +64,31 @@ public class WordsClient {
         excludePartOfSpeech.add("definite-article");
         excludePartOfSpeech.add("family-name");
         excludePartOfSpeech.add("given-name");
-        excludePartOfSpeech.add("imperativ");
+        excludePartOfSpeech.add("imperative");
         excludePartOfSpeech.add("proper-noun");
         excludePartOfSpeech.add("proper-noun-plural");
         excludePartOfSpeech.add("suffix");
         excludePartOfSpeech.add("verb-intransitive");
         excludePartOfSpeech.add("verb-transitive");
 
-        Call<JSONArray> randomWords = wordsApi.getRandomWords(true, includePartOfSpeech, excludePartOfSpeech, apiVariables.get("minCorpusCount"),
+        Call<JSONArray> randomWords = wordsApi.sendRequest(true, includePartOfSpeech, excludePartOfSpeech, apiVariables.get("minCorpusCount"),
                 apiVariables.get("maxCorpusCount"), apiVariables.get("minDictionaryCount"), apiVariables.get("maxDictionaryCount"),
-                apiVariables.get("minLength"), apiVariables.get("maxLength"), apiVariables.get("limit"), API_KEY);
+                apiVariables.get("minLength"), apiVariables.get("maxLength"), String.valueOf(wordsCount), API_KEY);
 
         Response<JSONArray> response = null;
         try {
             response = randomWords.execute();
+            Log.d(TAG, "getRandomWords: " + response.body());
             //todo: to migrate this into Words.class or to process request here
         } catch (IOException e) {
+            Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
             e.printStackTrace();
         }
-        return response.body();
+        return processResponse(wordsCount, WORD, response.body());
 
     }
 
-    private JSONArray getPartsOfSpeech() {
+    public List<String> getPartsOfSpeech(String word) {
         final String LIMIT = "500";
         Map<String, Boolean> apiVariables = new HashMap<>();
         apiVariables.put("includeRelated", false);
@@ -85,18 +96,35 @@ public class WordsClient {
         apiVariables.put("includeTags", false);
 
 
-        Call<JSONArray> partsOfSpeech = wordsApi.getPartOfSpeech(apiVariables.get("includeRelated"),
+        Call<JSONArray> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
                 apiVariables.get("useCanonical"),apiVariables.get("includeTags"), LIMIT, API_KEY);
 
 
         Response<JSONArray> response = null;
         try {
             response = partsOfSpeech.execute();
+            Log.d(TAG, "getPartsOfSpeech: " + response.body());
             //todo: to migrate this into Words.class or to process request here
         } catch (IOException e) {
+            Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
             e.printStackTrace();
         }
-        return response.body();
+        return processResponse(0, PART_OF_SPEECH, response.body());
 
+    }
+
+    private List<String> processResponse(int wordsCount, String entity, JSONArray response){
+        List<String> responseList = new LinkedList<>();
+        try {
+            if (wordsCount == 0) wordsCount = response.length();
+            for (int i = 0; i < wordsCount; i++) {
+                responseList.add(response.getJSONObject(i).getString(entity));
+            }
+            Log.d(TAG, "processResponse: response processed. Response is: " + responseList);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.e(TAG, "processResponse: Cannot parse response. Error message is: ", e);
+        }
+        return responseList;
     }
 }

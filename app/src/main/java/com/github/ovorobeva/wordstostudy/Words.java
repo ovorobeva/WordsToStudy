@@ -2,199 +2,29 @@ package com.github.ovorobeva.wordstostudy;
 
 import android.content.Context;
 import android.util.Log;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import okhttp3.OkHttpClient;
-import retrofit2.Call;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-
 public class Words {
 
-
-    private static final String WORD = "word";
-    private static final String PART_OF_SPEECH = "partOfSpeech";
-    private static final OkHttpClient httpClient = new OkHttpClient();
-
-    private static void sendRequest(Context context, String url, String entity, int wordsCount, List<String> callback) {
-///////////////////////////////////////////////////////////////////////
-        ////////////////////Send request using retrofit //////////////////
-        //////////////////////////////////////////////////////////////////////
-        final String BASE_URL = "https://api.wordnik.com/v4/";
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .build();
-
-        WordsApi wordsApi = retrofit.create(WordsApi.class);
-
-            Call<String> words = wordsApi.getRandomWords();
-
-            try {
-                Response<String> response = words.execute();
-                if(response.code() != 200) {
-                    Log.e("Custom logs", "sendRequest: an error occurred during request. Status code is: " + response.code() );
-                    return;
-                }
-
-                if(response.body().isEmpty()) {
-                    Log.e("Custom logs", "sendRequest: Something went wrong during request. The response is empty");
-                    return;
-                }
-                //todo: to migrate this into Words.class or to process request here
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-//////////////////////////////////Send request using OKHTTP///////////////////////////////
-        /////////////////////////////////////////////////////////////////////////
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(url)
-                .build();
-
-        try (okhttp3.Response response = httpClient.newCall(request).execute()) {
-
-            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            // Get response body
-            try {
-                List<String> responseList = new LinkedList<>();
-                int privateCount = wordsCount;
-                JSONArray jsonResponse = new JSONArray(response);
-
-                if (privateCount == 0) privateCount = jsonResponse.length();
-                for (int i = 0; i < privateCount; i++) {
-                    responseList.add(jsonResponse.getJSONObject(i).getString(entity));
-                    //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
-                }
-                callback.clear();
-                callback.addAll(responseList);
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received: " + responseList);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                callback.clear();
-                callback.add(e.getMessage());
-                Log.e(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Cannot parse response. Error message is: " + e.getLocalizedMessage());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-        //////////////////////////////////////////////////////////////////////
-        /////////////////////////////////////////////////////////////////////
-
-
-// Instantiate the RequestQueue.
-       /* RequestQueue queue = Volley.newRequestQueue(context);
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        try {
-                            List<String> responseList = new LinkedList<>();
-                            int privateCount = wordsCount;
-                            JSONArray jsonResponse = new JSONArray(response);
-
-                            if (privateCount == 0) privateCount = jsonResponse.length();
-                            for (int i = 0; i < privateCount; i++) {
-                                responseList.add(jsonResponse.getJSONObject(i).getString(entity));
-                                //addValueToResponseArray(jsonResponse.getJSONObject(i).getString(value));
-                            }
-                            callback.clear();
-                            callback.addAll(responseList);
-                            Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Response is received: " + responseList);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            callback.clear();
-                            callback.add(e.getMessage());
-                            Log.e(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Cannot parse response. Error message is: " + e.getLocalizedMessage());
-                        }
-
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                callback.clear();
-                callback.add(error.getMessage());
-                Log.d(AppWidget.class.getCanonicalName() + ".requestRandomWord", "Something went wrong during request: " + error.getMessage());
-            }
-        });
-        queue.add(stringRequest);*/
-    }
-
-    private static void getRandomWords(Context context, int wordsCount, List<String> words) {
-
-        boolean isHasDictionaryDef = true;
-        String includePartOfSpeech = "noun%2Cadjective%2Cverb%2Cadverb%2Cidiom%2Cpast-participle";
-        String excludePartOfSpeech = "interjection%2Cpronoun%2Cpreposition%2Cabbreviation%2Caffix%2Carticle" +
-                "%2Cauxiliary-verb%2Cconjunction%2Cdefinite-article%2Cfamily-name%2Cgiven-name%2Cimperative%2" +
-                "Cproper-noun%2Cproper-noun-plural%2Csuffix%2Cverb-intransitive%2Cverb-transitive";
-        //todo: to make constants for beginner, intermediate, advanced
-        String minCorpusCount = "100000";
-        String maxCorpusCount = "-1";
-        String minDictionaryCount = "0";
-        String maxDictionaryCount = "-1";
-        String minLength = "2";
-        String maxLength = "-1";
-        String limit = String.valueOf(wordsCount);
-        String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
-
-        //todo: to remove variables into a map
-        String url = "https://api.wordnik.com/v4/words.json/randomWords?hasDictionaryDef=" + isHasDictionaryDef +
-                "&includePartOfSpeech=" + includePartOfSpeech +
-                "&excludePartOfSpeech=" + excludePartOfSpeech +
-                "&minCorpusCount=" + minCorpusCount +
-                "&maxCorpusCount=" + maxCorpusCount +
-                "&minDictionaryCount=" + minDictionaryCount +
-                "&maxDictionaryCount=" + maxDictionaryCount +
-                "&minLength=" + minLength +
-                "&maxLength=" + maxLength +
-                "&limit=" + limit +
-                "&api_key=" + api_key;
-
-        sendRequest(context, url, WORD, wordsCount, words);
-    }
-
-    private static void getPartOfSpeech(Context context, String word, List<String> partsOfSpeech) {
-        String limit = "500";
-        boolean includeRelated = false;
-        boolean useCanonical = false;
-        boolean includeTags = false;
-        String api_key = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
-
-        String url = "https://api.wordnik.com/v4/word.json/" + word + "/definitions?includeRelated=" + includeRelated +
-                "&useCanonical=" + useCanonical +
-                "&includeTags=" + includeTags +
-                "&limit=" + limit +
-                "&api_key=" + api_key;
-        Log.d("URL", url);
-
-        sendRequest(context, url, PART_OF_SPEECH, 0, partsOfSpeech);
-
-        Log.d("Custom logs", "getPartOfSpeech: " + partsOfSpeech);
-
-    }
+    private static final String TAG = "Custom logs";
 
     public static void getWords(Context context, List<String> words) {
 
         int wordsCount;
         wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
-        List<String> partsOfSpeech;
 
-        getRandomWords(context, wordsCount, words);
-        Iterator<String> iterator = words.iterator();
+        WordsClient wordsClient = new WordsClient();
+        List<String> wordsToProcess = new LinkedList<>(wordsClient.getRandomWords(wordsCount));
+
+        Iterator<String> iterator = wordsToProcess.iterator();
         int removedCounter = 0;
-        Log.d("Custom logs", "getWords: Starting removing non-matching words from the list \n" + words);
+        Log.d(TAG, "getWords: Starting removing non-matching words from the list \n" + wordsToProcess);
 
         while (iterator.hasNext()) {
-            partsOfSpeech = new LinkedList<>();
             String word = iterator.next();
             Pattern pattern = Pattern.compile("[^a-zA-Z[-]]");
             Matcher matcher = pattern.matcher(word);
@@ -202,29 +32,31 @@ public class Words {
             if (matcher.find()) {
                 iterator.remove();
                 removedCounter++;
-                Log.d("Custom logs", "getWords: Removing the word " + word + " because of containing symbol " + matcher.toMatchResult() + ". The count of deleted words is " + removedCounter);
+                Log.d(TAG, "getWords: Removing the word " + word + " because of containing symbol " + matcher.toMatchResult() + ". The count of deleted words is " + removedCounter);
                 continue;
             }
 
-            if (!isPartOfSpeechCorrect(context, word, partsOfSpeech)) {
+            if (!isPartOfSpeechCorrect(word, wordsClient)) {
                 iterator.remove();
                 removedCounter++;
-                Log.d("Custom logs", "getWords: Removing the word " + word + ". The count of deleted words is " + removedCounter);
+                Log.d("Custom logs", "getWords: Removing the word " + word + " because of the wrong part of speech. The count of deleted words is " + removedCounter);
 
             }
 
         }
-        Log.d("Custom logs", "getWords: " + words);
+        words.clear();
+        words.addAll(wordsToProcess);
+
     }
 
-    private static Boolean isPartOfSpeechCorrect(Context context, String word, List<String> partsOfSpeech) {
+    private static Boolean isPartOfSpeechCorrect(String word, WordsClient wordsClient) {
         boolean isCorrect = true;
-        getPartOfSpeech(context, word.toLowerCase(), partsOfSpeech);
-        Log.d("Custom logs", "getWords: Parts of speech for a word " + word + " are:" + partsOfSpeech);
+        List<String> partsOfSpeech = new LinkedList<>(wordsClient.getPartsOfSpeech(word));
+        Log.d(TAG, "isPartOfSpeechCorrect: parts of speech for the word " + word + "are: " + partsOfSpeech);
 
-        for (String parOfSpeech : partsOfSpeech) {
-            if (!parOfSpeech.matches("(?i)noun|adjective|adverb|idiom|past-participle")) {
-                Log.d("Custom logs", "isPartOfSpeechCorrect: Removing the word " + word + " because of part of speech " + parOfSpeech);
+        for (String partOfSpeech : partsOfSpeech) {
+            if (!partOfSpeech.matches("(?i)noun|adjective|adverb|idiom|past-participle")) {
+                Log.d(TAG, "isPartOfSpeechCorrect: The word " + word + "is to be removed because of part of speech: " + partOfSpeech);
                 isCorrect = false;
                 break;
             }
