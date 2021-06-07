@@ -17,13 +17,13 @@ public interface WordsApi {
                                 @Query("useCanonical") boolean useCanonical,
                                 @Query("includeTags") boolean includeTags,
                                 @Query("limit") String limit,
-                                @Query("apiKey") String apiKey);
+                                @Query("api_key") String apiKey);
 
 
-    @GET("words.json/")
+    @GET("words.json/randomWords")
     Call<JSONArray> sendRequest(@Query("isHasDictionaryDef") boolean isHasDictionaryDef,
-                                @Query("includePartOfSpeech") List<String> includePartOfSpeech,
-                                @Query("excludePartOfSpeech") List<String> excludePartOfSpeech,
+                                @Query("includePartOfSpeech") String includePartOfSpeech,
+                                @Query("excludePartOfSpeech") String excludePartOfSpeech,
                                 //todo: to make constants for beginner, intermediate, advanced
                                 @Query("minCorpusCount") String minCorpusCount,
                                 @Query("maxCorpusCount") String maxCorpusCount,
@@ -32,5 +32,5 @@ public interface WordsApi {
                                 @Query("minLength") String minLength,
                                 @Query("maxLength") String maxLength,
                                 @Query("limit") String limit,
-                                @Query("apiKey") String apiKey);
+                                @Query("api_key") String apiKey);
 }

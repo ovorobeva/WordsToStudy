@@ -20,12 +20,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class WordsClient {
     private static final String TAG = "Custom logs";
-    WordsApi wordsApi;
     private final String BASE_URL = "https://api.wordnik.com/v4/";
     private final String API_KEY = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
-
     private final String WORD = "word";
     private final String PART_OF_SPEECH = "partOfSpeech";
+    WordsApi wordsApi;
 
     public WordsClient() {
         Retrofit retrofit = new Retrofit.Builder()
@@ -47,33 +46,46 @@ public class WordsClient {
         apiVariables.put("minLength", "2");
         apiVariables.put("maxLength", "-1");
 
-        List<String> includePartOfSpeech = new ArrayList<>();
-        includePartOfSpeech.add("noun");
-        includePartOfSpeech.add("adjective");
-        includePartOfSpeech.add("verb");
-        includePartOfSpeech.add("idiom");
-        includePartOfSpeech.add("past-participle");
+        List<String> includePartOfSpeechList = new ArrayList<>();
+        includePartOfSpeechList.add("noun,");
+        includePartOfSpeechList.add("adjective,");
+        includePartOfSpeechList.add("verb,");
+        includePartOfSpeechList.add("idiom,");
+        includePartOfSpeechList.add("past-participle");
 
-        List<String> excludePartOfSpeech = new ArrayList<>();
-        excludePartOfSpeech.add("interjection");
-        excludePartOfSpeech.add("pronoun");
-        excludePartOfSpeech.add("preposition");
-        excludePartOfSpeech.add("abbreviation");
-        excludePartOfSpeech.add("affix");
-        excludePartOfSpeech.add("article");
-        excludePartOfSpeech.add("auxiliary-verb");
-        excludePartOfSpeech.add("conjunction");
-        excludePartOfSpeech.add("definite-article");
-        excludePartOfSpeech.add("family-name");
-        excludePartOfSpeech.add("given-name");
-        excludePartOfSpeech.add("imperative");
-        excludePartOfSpeech.add("proper-noun");
-        excludePartOfSpeech.add("proper-noun-plural");
-        excludePartOfSpeech.add("suffix");
-        excludePartOfSpeech.add("verb-intransitive");
-        excludePartOfSpeech.add("verb-transitive");
+        StringBuilder includePartOfSpeech = new StringBuilder();
 
-        Call<JSONArray> randomWords = wordsApi.sendRequest(true, includePartOfSpeech, excludePartOfSpeech, apiVariables.get("minCorpusCount"),
+        for (String partOfSpeech : includePartOfSpeechList) {
+            includePartOfSpeech.append(partOfSpeech);
+        }
+
+        List<String> excludePartOfSpeechList = new ArrayList<>();
+        excludePartOfSpeechList.add("interjection,");
+        excludePartOfSpeechList.add("pronoun,");
+        excludePartOfSpeechList.add("preposition,");
+        excludePartOfSpeechList.add("abbreviation,");
+        excludePartOfSpeechList.add("affix,");
+        excludePartOfSpeechList.add("article,");
+        excludePartOfSpeechList.add("auxiliary-verb,");
+        excludePartOfSpeechList.add("conjunction,");
+        excludePartOfSpeechList.add("definite-article,");
+        excludePartOfSpeechList.add("family-name,");
+        excludePartOfSpeechList.add("given-name,");
+        excludePartOfSpeechList.add("imperative,");
+        excludePartOfSpeechList.add("proper-noun,");
+        excludePartOfSpeechList.add("proper-noun-plural,");
+        excludePartOfSpeechList.add("suffix,");
+        excludePartOfSpeechList.add("verb-intransitive,");
+        excludePartOfSpeechList.add("verb-transitive");
+
+
+        StringBuilder excludePartOfSpeech = new StringBuilder();
+
+        for (String partOfSpeech : excludePartOfSpeechList) {
+            excludePartOfSpeech.append(partOfSpeech);
+        }
+
+        Call<JSONArray> randomWords = wordsApi.sendRequest(true, includePartOfSpeech.toString(), excludePartOfSpeech.toString(), apiVariables.get("minCorpusCount"),
                 apiVariables.get("maxCorpusCount"), apiVariables.get("minDictionaryCount"), apiVariables.get("maxDictionaryCount"),
                 apiVariables.get("minLength"), apiVariables.get("maxLength"), String.valueOf(wordsCount), API_KEY);
 
@@ -92,14 +104,14 @@ public class WordsClient {
                     processResponse(wordsCount, WORD, response.body(), processedResult);
                     Log.d(TAG, "getRandomWords: " + response.body());
                 } else {
-                    Log.e(TAG, "getRandomWords: There is an error during request. Response code is: " + response.code());
+                    Log.e(TAG, "getRandomWords: There is an error during request. Response code is: " + response.code() + "url is: " + response.raw().request().url());
                 }
 
             }
 
             @Override
             public void onFailure(Call<JSONArray> call, Throwable t) {
-                Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
+                Log.d(TAG, "getRandomWords: Something went wrong during request");
                 t.printStackTrace();
 
             }
@@ -120,24 +132,36 @@ public class WordsClient {
 
 
         Call<JSONArray> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
-                apiVariables.get("useCanonical"),apiVariables.get("includeTags"), LIMIT, API_KEY);
+                apiVariables.get("useCanonical"), apiVariables.get("includeTags"), LIMIT, API_KEY);
 
 
-        Response<JSONArray> response = null;
-        try {
-            response = partsOfSpeech.execute();
-            Log.d(TAG, "getPartsOfSpeech: " + response.body());
-            //todo: to migrate this into Words.class or to process request here
-        } catch (IOException e) {
-            Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
-            e.printStackTrace();
-        }
-        processResponse(0, PART_OF_SPEECH, response.body(), processedResult);
+        partsOfSpeech.enqueue(new Callback<JSONArray>() {
+            @Override
+            public void onResponse(Call<JSONArray> call, Response<JSONArray> response) {
+                if (response.isSuccessful()) {
+                    processResponse(0, PART_OF_SPEECH, response.body(), processedResult);
+                    Log.d(TAG, "getPartsOfSpeech: " + response.body());
+                } else {
+                    Log.e(TAG, "getPartsOfSpeech: There is an error during request. Response code is: " + response.code() + "url is: " + response.raw().request().url());
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<JSONArray> call, Throwable t) {
+                Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
+                t.printStackTrace();
+
+            }
+        });
+
         return processedResult;
+
 
     }
 
-    private void processResponse(int wordsCount, String entity, JSONArray response, List<String> processedResult){
+
+    private void processResponse(int wordsCount, String entity, JSONArray response, List<String> processedResult) {
         List<String> responseList = new LinkedList<>();
         try {
             if (wordsCount == 0) wordsCount = response.length();
