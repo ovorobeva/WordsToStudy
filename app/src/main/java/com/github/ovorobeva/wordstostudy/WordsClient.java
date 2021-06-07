@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -31,12 +32,13 @@ public class WordsClient {
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
         wordsApi = retrofit.create(WordsApi.class);
     }
 
 
-    public List<String> getRandomWords(int wordsCount) {
+    List<String> getRandomWords(int wordsCount) {
+        List<String> processedResult = new LinkedList<>();
+
         Map<String, String> apiVariables = new HashMap<>();
         apiVariables.put("minCorpusCount", "100000");
         apiVariables.put("maxCorpusCount", "-1");
@@ -75,20 +77,41 @@ public class WordsClient {
                 apiVariables.get("maxCorpusCount"), apiVariables.get("minDictionaryCount"), apiVariables.get("maxDictionaryCount"),
                 apiVariables.get("minLength"), apiVariables.get("maxLength"), String.valueOf(wordsCount), API_KEY);
 
-        Response<JSONArray> response = null;
-        try {
-            response = randomWords.execute();
+/*        try {
+            Response<JSONArray> response = randomWords.execute();
             Log.d(TAG, "getRandomWords: " + response.body());
-            //todo: to migrate this into Words.class or to process request here
         } catch (IOException e) {
             Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
             e.printStackTrace();
-        }
-        return processResponse(wordsCount, WORD, response.body());
+        }*/
+
+        randomWords.enqueue(new Callback<JSONArray>() {
+            @Override
+            public void onResponse(Call<JSONArray> call, Response<JSONArray> response) {
+                if (response.isSuccessful()) {
+                    processResponse(wordsCount, WORD, response.body(), processedResult);
+                    Log.d(TAG, "getRandomWords: " + response.body());
+                } else {
+                    Log.e(TAG, "getRandomWords: There is an error during request. Response code is: " + response.code());
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<JSONArray> call, Throwable t) {
+                Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
+                t.printStackTrace();
+
+            }
+        });
+
+
+        return processedResult;
 
     }
 
     public List<String> getPartsOfSpeech(String word) {
+        List<String> processedResult = new LinkedList<>();
         final String LIMIT = "500";
         Map<String, Boolean> apiVariables = new HashMap<>();
         apiVariables.put("includeRelated", false);
@@ -109,11 +132,12 @@ public class WordsClient {
             Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
             e.printStackTrace();
         }
-        return processResponse(0, PART_OF_SPEECH, response.body());
+        processResponse(0, PART_OF_SPEECH, response.body(), processedResult);
+        return processedResult;
 
     }
 
-    private List<String> processResponse(int wordsCount, String entity, JSONArray response){
+    private void processResponse(int wordsCount, String entity, JSONArray response, List<String> processedResult){
         List<String> responseList = new LinkedList<>();
         try {
             if (wordsCount == 0) wordsCount = response.length();
@@ -125,6 +149,6 @@ public class WordsClient {
             e.printStackTrace();
             Log.e(TAG, "processResponse: Cannot parse response. Error message is: ", e);
         }
-        return responseList;
+        processedResult.addAll(responseList);
     }
 }
