@@ -25,7 +25,16 @@ public class WordsClient {
     private final String PART_OF_SPEECH = "partOfSpeech";
     WordsApi wordsApi;
 
-    public WordsClient() {
+    static WordsClient wordsClient;
+
+    public static synchronized WordsClient getWordsClient(){
+        if (wordsClient == null){
+            wordsClient = new WordsClient();
+        }
+        return wordsClient;
+    }
+
+    private WordsClient() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())

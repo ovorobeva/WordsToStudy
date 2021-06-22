@@ -17,7 +17,7 @@ public class Words {
         int wordsCount;
         wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
 
-        WordsClient wordsClient = new WordsClient();
+        WordsClient wordsClient = WordsClient.getWordsClient();
         List<String> wordsToProcess = new LinkedList<>(wordsClient.getRandomWords(wordsCount));
 
         Iterator<String> iterator = wordsToProcess.iterator();
