@@ -5,7 +5,6 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -85,7 +84,7 @@ public class WordsClient {
             excludePartOfSpeech.append(partOfSpeech);
         }
 
-        Call<JSONArray> randomWords = wordsApi.sendRequest(true, includePartOfSpeech.toString(), excludePartOfSpeech.toString(), apiVariables.get("minCorpusCount"),
+        Call<List<JSONArray>> randomWords = wordsApi.sendRequest(true, includePartOfSpeech.toString(), excludePartOfSpeech.toString(), apiVariables.get("minCorpusCount"),
                 apiVariables.get("maxCorpusCount"), apiVariables.get("minDictionaryCount"), apiVariables.get("maxDictionaryCount"),
                 apiVariables.get("minLength"), apiVariables.get("maxLength"), String.valueOf(wordsCount), API_KEY);
 
@@ -97,9 +96,9 @@ public class WordsClient {
             e.printStackTrace();
         }*/
 
-        randomWords.enqueue(new Callback<JSONArray>() {
+        randomWords.enqueue(new Callback<List<JSONArray>>() {
             @Override
-            public void onResponse(Call<JSONArray> call, Response<JSONArray> response) {
+            public void onResponse(Call<List<JSONArray>> call, Response<List<JSONArray>> response) {
                 if (response.isSuccessful()) {
                     processResponse(wordsCount, WORD, response.body(), processedResult);
                     Log.d(TAG, "getRandomWords: " + response.body());
@@ -110,7 +109,7 @@ public class WordsClient {
             }
 
             @Override
-            public void onFailure(Call<JSONArray> call, Throwable t) {
+            public void onFailure(Call<List<JSONArray>> call, Throwable t) {
                 Log.d(TAG, "getRandomWords: Something went wrong during request");
                 t.printStackTrace();
 
@@ -131,13 +130,13 @@ public class WordsClient {
         apiVariables.put("includeTags", false);
 
 
-        Call<JSONArray> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
+        Call<List<JSONArray>> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
                 apiVariables.get("useCanonical"), apiVariables.get("includeTags"), LIMIT, API_KEY);
 
 
-        partsOfSpeech.enqueue(new Callback<JSONArray>() {
+        partsOfSpeech.enqueue(new Callback<List<JSONArray>>() {
             @Override
-            public void onResponse(Call<JSONArray> call, Response<JSONArray> response) {
+            public void onResponse(Call<List<JSONArray>> call, Response<List<JSONArray>> response) {
                 if (response.isSuccessful()) {
                     processResponse(0, PART_OF_SPEECH, response.body(), processedResult);
                     Log.d(TAG, "getPartsOfSpeech: " + response.body());
@@ -148,7 +147,7 @@ public class WordsClient {
             }
 
             @Override
-            public void onFailure(Call<JSONArray> call, Throwable t) {
+            public void onFailure(Call<List<JSONArray>> call, Throwable t) {
                 Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
                 t.printStackTrace();
 
@@ -161,17 +160,20 @@ public class WordsClient {
     }
 
 
-    private void processResponse(int wordsCount, String entity, JSONArray response, List<String> processedResult) {
+    private void processResponse(int wordsCount, String entity, List<JSONArray> response, List<String> processedResult) {
         List<String> responseList = new LinkedList<>();
         try {
-            if (wordsCount == 0) wordsCount = response.length();
-            for (int i = 0; i < wordsCount; i++) {
-                responseList.add(response.getJSONObject(i).getString(entity));
+            if (wordsCount == 0) wordsCount = response.size();
+            for (JSONArray responseItem: response){
+                for (int i = 0; i < wordsCount; i++) {
+                    responseList.add(responseItem.getJSONObject(i).getString(entity));
+                }
+
             }
             Log.d(TAG, "processResponse: response processed. Response is: " + responseList);
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.e(TAG, "processResponse: Cannot parse response. Error message is: ", e);
+            Log.e(TAG, "processResponse: Cannot parse response.Response is: "+ response +" Error message is: ", e);
         }
         processedResult.addAll(responseList);
     }
