@@ -15,7 +15,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class WordsClient {
     private static final String TAG = "Custom logs";
@@ -37,7 +37,8 @@ public class WordsClient {
     private WordsClient() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
+               // .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
         wordsApi = retrofit.create(WordsApi.class);
     }
@@ -93,7 +94,7 @@ public class WordsClient {
             excludePartOfSpeech.append(partOfSpeech);
         }
 
-        Call<List<JSONArray>> randomWords = wordsApi.sendRequest(true, includePartOfSpeech.toString(), excludePartOfSpeech.toString(), apiVariables.get("minCorpusCount"),
+        Call<String> randomWords = wordsApi.sendRequest(true, includePartOfSpeech.toString(), excludePartOfSpeech.toString(), apiVariables.get("minCorpusCount"),
                 apiVariables.get("maxCorpusCount"), apiVariables.get("minDictionaryCount"), apiVariables.get("maxDictionaryCount"),
                 apiVariables.get("minLength"), apiVariables.get("maxLength"), String.valueOf(wordsCount), API_KEY);
 
@@ -105,9 +106,9 @@ public class WordsClient {
             e.printStackTrace();
         }*/
 
-        randomWords.enqueue(new Callback<List<JSONArray>>() {
+        randomWords.enqueue(new Callback<String>() {
             @Override
-            public void onResponse(Call<List<JSONArray>> call, Response<List<JSONArray>> response) {
+            public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
                     processResponse(wordsCount, WORD, response.body(), processedResult);
                     Log.d(TAG, "getRandomWords: " + response.body());
@@ -118,7 +119,7 @@ public class WordsClient {
             }
 
             @Override
-            public void onFailure(Call<List<JSONArray>> call, Throwable t) {
+            public void onFailure(Call<String> call, Throwable t) {
                 Log.d(TAG, "getRandomWords: Something went wrong during request");
                 t.printStackTrace();
 
@@ -139,13 +140,13 @@ public class WordsClient {
         apiVariables.put("includeTags", false);
 
 
-        Call<List<JSONArray>> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
+        Call<String> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
                 apiVariables.get("useCanonical"), apiVariables.get("includeTags"), LIMIT, API_KEY);
 
 
-        partsOfSpeech.enqueue(new Callback<List<JSONArray>>() {
+        partsOfSpeech.enqueue(new Callback<String>() {
             @Override
-            public void onResponse(Call<List<JSONArray>> call, Response<List<JSONArray>> response) {
+            public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
                     processResponse(0, PART_OF_SPEECH, response.body(), processedResult);
                     Log.d(TAG, "getPartsOfSpeech: " + response.body());
@@ -156,7 +157,7 @@ public class WordsClient {
             }
 
             @Override
-            public void onFailure(Call<List<JSONArray>> call, Throwable t) {
+            public void onFailure(Call<String> call, Throwable t) {
                 Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
                 t.printStackTrace();
 
@@ -169,15 +170,13 @@ public class WordsClient {
     }
 
 
-    private void processResponse(int wordsCount, String entity, List<JSONArray> response, List<String> processedResult) {
+    private void processResponse(int wordsCount, String entity, String response, List<String> processedResult) {
         List<String> responseList = new LinkedList<>();
         try {
-            if (wordsCount == 0) wordsCount = response.size();
-            for (JSONArray responseItem: response){
+        JSONArray jsonResponse = new JSONArray(response);
+            if (wordsCount == 0) wordsCount = jsonResponse.length();
                 for (int i = 0; i < wordsCount; i++) {
-                    responseList.add(responseItem.getJSONObject(i).getString(entity));
-                }
-
+                    responseList.add(jsonResponse.getJSONObject(i).getString(entity));
             }
             Log.d(TAG, "processResponse: response processed. Response is: " + responseList);
         } catch (JSONException e) {

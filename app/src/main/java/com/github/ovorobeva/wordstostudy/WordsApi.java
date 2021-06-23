@@ -12,7 +12,7 @@ import retrofit2.http.Query;
 public interface WordsApi {
 
     @GET("word.json/{word}/definitions")
-    Call<List<JSONArray>> sendRequest(@Path("word") String word,
+    Call<String> sendRequest(@Path("word") String word,
                                 @Query("includeRelated") boolean includeRelated,
                                 @Query("useCanonical") boolean useCanonical,
                                 @Query("includeTags") boolean includeTags,
@@ -21,7 +21,7 @@ public interface WordsApi {
 
 
     @GET("words.json/randomWords")
-    Call<List<JSONArray>> sendRequest(@Query("isHasDictionaryDef") boolean isHasDictionaryDef,
+    Call<String> sendRequest(@Query("isHasDictionaryDef") boolean isHasDictionaryDef,
                                 @Query("includePartOfSpeech") String includePartOfSpeech,
                                 @Query("excludePartOfSpeech") String excludePartOfSpeech,
                                 //todo: to make constants for beginner, intermediate, advanced
