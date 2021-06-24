@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.nfc.Tag;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -27,6 +28,7 @@ public class AppWidget extends AppWidgetProvider {
     //todo: to make "words" constant in string.xml
     static private List<String> text = new LinkedList<>();
     private PendingIntent service = null;
+    private static final String TAG = "Custom logs";
 
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
@@ -34,11 +36,9 @@ public class AppWidget extends AppWidgetProvider {
         // Construct the RemoteViews object
 
         getWords(context, text);
-        Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Getword called: New text value for the widget ID " + appWidgetId + " is: " + text);
-
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         views.setTextViewText(R.id.appwidget_text, text.toString());
-        Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "New text set to the widget ID " + appWidgetId + ". The new word is: " + text);
+        Log.d(TAG, "New text set to the widget ID " + appWidgetId + ". The new word is: " + text);
 
 
         // Opens the config activity by click on widget
@@ -53,8 +53,6 @@ public class AppWidget extends AppWidgetProvider {
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
-        Log.d(AppWidget.class.getCanonicalName() + ".updateAppWidget", "Widget ID " + appWidgetId + " is updated");
-
     }
 //todo: to fix the schedule update. Didnt called until the next update
     private static void _scheduleNextUpdate(Context context) {
@@ -69,7 +67,7 @@ public class AppWidget extends AppWidgetProvider {
        // int period = ConfigureActivity.loadPeriodFromPref(context, appWidgetId);
         int period = ConfigureActivity.loadPeriodFromPref(context);
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, schedule.getTimeInMillis() + period, pendingIntent);
-        Log.d(AppWidget.class.getCanonicalName() + "._scheduleNextUpdate", "Schedule for updating is set. The next update will be done in " + period + "ms");
+        Log.d(TAG, "Schedule for updating is set. The next update will be done in " + period + "ms");
     }
 
     @Override
@@ -80,7 +78,7 @@ public class AppWidget extends AppWidgetProvider {
             //RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
 
 
-            Log.d(AppWidget.class.getCanonicalName() + ".onUpdate", "Update completed for widget ID " + appWidgetId);
+            Log.d(TAG, "Update completed for widget ID " + appWidgetId);
         }
         _scheduleNextUpdate(context);
     }
@@ -91,26 +89,26 @@ public class AppWidget extends AppWidgetProvider {
         //Todo: to stop updating of deleted widgets, to delete all preferences and to kill the schedule
         for (int appWidgetId : appWidgetIds) {
             ConfigureActivity.deletePeriodFromPref(context, appWidgetId);
-            Log.d(AppWidget.class.getCanonicalName() + ".onDeleted", "Widget ID " + appWidgetId + " is deleted");
+            Log.d(TAG, "Widget ID " + appWidgetId + " is deleted");
         }
     }
 
     @Override
     public void onEnabled(Context context) {
         // Enter relevant functionality for when the first widget is created
-        Log.d(AppWidget.class.getCanonicalName() + ".onEnabled", "The first widget is created");
+        Log.d(TAG, "The first widget is created");
     }
 
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
-        Log.d(AppWidget.class.getCanonicalName() + ".onDisabled", "The last widget is disabled");
+        Log.d(TAG, "The last widget is disabled");
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
-            Log.d(AppWidget.class.getCanonicalName() + ".onReceive", "The time to update has come");
+            Log.d(TAG, "The time to update has come");
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
             int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             //todo: why to call onUpdate if we have scheduled update? To remove code from upd

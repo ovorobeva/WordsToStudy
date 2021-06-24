@@ -18,34 +18,33 @@ import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class WordsClient {
+    private static final Object OBJECT = new Object();
     private static final String TAG = "Custom logs";
+    private volatile static WordsClient wordsClient;
     private final String BASE_URL = "https://api.wordnik.com/v4/";
     private final String API_KEY = "55k0ykdy6pe8fmu69pwjk94es02i9085k3h1hn11ku56c4qep";
-    private final String WORD = "word";
-    private final String PART_OF_SPEECH = "partOfSpeech";
-    WordsApi wordsApi;
-
-    static WordsClient wordsClient;
-
-    public static synchronized WordsClient getWordsClient(){
-        if (wordsClient == null){
-            wordsClient = new WordsClient();
-        }
-        return wordsClient;
-    }
+    private final WordsApi wordsApi;
 
     private WordsClient() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-               // .addConverterFactory(GsonConverterFactory.create())
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build();
         wordsApi = retrofit.create(WordsApi.class);
     }
 
+    public static WordsClient getWordsClient() {
+        if (wordsClient != null)
+            return wordsClient;
 
-    List<String> getRandomWords(int wordsCount) {
-        List<String> processedResult = new LinkedList<>();
+        synchronized (OBJECT) {
+            if (wordsClient == null)
+                wordsClient = new WordsClient();
+            return wordsClient;
+        }
+    }
+
+    public void getRandomWords(int wordsCount, StringBuilder responseToProcess) {
 
         Map<String, String> apiVariables = new HashMap<>();
         apiVariables.put("minCorpusCount", "100000");
@@ -98,41 +97,15 @@ public class WordsClient {
                 apiVariables.get("maxCorpusCount"), apiVariables.get("minDictionaryCount"), apiVariables.get("maxDictionaryCount"),
                 apiVariables.get("minLength"), apiVariables.get("maxLength"), String.valueOf(wordsCount), API_KEY);
 
-/*        try {
-            Response<JSONArray> response = randomWords.execute();
-            Log.d(TAG, "getRandomWords: " + response.body());
-        } catch (IOException e) {
-            Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
-            e.printStackTrace();
-        }*/
+        enqueue(randomWords, responseToProcess);
 
-        randomWords.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    processResponse(wordsCount, WORD, response.body(), processedResult);
-                    Log.d(TAG, "getRandomWords: " + response.body());
-                } else {
-                    Log.e(TAG, "getRandomWords: There is an error during request. Response code is: " + response.code() + "url is: " + response.raw().request().url());
-                }
-
-            }
-
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                Log.d(TAG, "getRandomWords: Something went wrong during request");
-                t.printStackTrace();
-
-            }
-        });
-
-
-        return processedResult;
+        Log.d(TAG, "getRandomWords. Response to process is: " + responseToProcess);
+        //    return responseToProcess;
 
     }
 
-    public List<String> getPartsOfSpeech(String word) {
-        List<String> processedResult = new LinkedList<>();
+    public synchronized void getPartsOfSpeech(String word, StringBuilder responseToProcess) {
+        Log.d(TAG, "getPartsOfSpeech: Start getting parts of speech for the word " + word);
         final String LIMIT = "500";
         Map<String, Boolean> apiVariables = new HashMap<>();
         apiVariables.put("includeRelated", false);
@@ -143,46 +116,32 @@ public class WordsClient {
         Call<String> partsOfSpeech = wordsApi.sendRequest(word, apiVariables.get("includeRelated"),
                 apiVariables.get("useCanonical"), apiVariables.get("includeTags"), LIMIT, API_KEY);
 
+        enqueue(partsOfSpeech, responseToProcess);
 
-        partsOfSpeech.enqueue(new Callback<String>() {
+    }
+
+    private synchronized void enqueue(Call<String> call, StringBuilder responseToProcess) {
+
+        call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful()) {
-                    processResponse(0, PART_OF_SPEECH, response.body(), processedResult);
-                    Log.d(TAG, "getPartsOfSpeech: " + response.body());
+                    responseToProcess.setLength(0);
+                    responseToProcess.append(response.body());
+                    Log.d(TAG, "onResponse: Response by the url " + response.raw().request().url() + " is received.\nResponse to process is: " + responseToProcess);
                 } else {
-                    Log.e(TAG, "getPartsOfSpeech: There is an error during request. Response code is: " + response.code() + "url is: " + response.raw().request().url());
+                    Log.e(TAG, "onResponse: There is an error during request. Response code is: " + response.code() + " url is: " + response.raw().request().url());
                 }
 
             }
 
             @Override
             public void onFailure(Call<String> call, Throwable t) {
-                Log.d(TAG, "getPartsOfSpeech: Something went wrong during request");
+                Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url(), t);
                 t.printStackTrace();
-
             }
         });
-
-        return processedResult;
-
-
     }
 
 
-    private void processResponse(int wordsCount, String entity, String response, List<String> processedResult) {
-        List<String> responseList = new LinkedList<>();
-        try {
-        JSONArray jsonResponse = new JSONArray(response);
-            if (wordsCount == 0) wordsCount = jsonResponse.length();
-                for (int i = 0; i < wordsCount; i++) {
-                    responseList.add(jsonResponse.getJSONObject(i).getString(entity));
-            }
-            Log.d(TAG, "processResponse: response processed. Response is: " + responseList);
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Log.e(TAG, "processResponse: Cannot parse response.Response is: "+ response +" Error message is: ", e);
-        }
-        processedResult.addAll(responseList);
-    }
 }
