@@ -44,10 +44,14 @@ public class Words {
 
 
     private static void processResponse(int wordsCount, List<GeneratedWords> response, List<String> processedResult) {
+        if (response.isEmpty()) return;
         Random random = new Random();
         List<GeneratedWords> randomWords = new LinkedList<>();
+        int id;
         for (int i = 0; i < wordsCount; i++){
-            randomWords.add(response.get(random.nextInt(response.size() - 1)));
+            id = random.nextInt(response.size());
+            if (id > 0) id--;
+            randomWords.add(response.get(id));
         }
 
 
