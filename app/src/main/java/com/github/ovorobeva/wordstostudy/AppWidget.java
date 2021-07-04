@@ -7,16 +7,14 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.nfc.Tag;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.github.ovorobeva.wordstostudy.Words.getWords;
+import static com.github.ovorobeva.wordstostudy.Words.setWords;
 
 /**
  * Implementation of App Widget functionality.
@@ -33,24 +31,19 @@ public class AppWidget extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
-        // Construct the RemoteViews object
-
-        getWords(context, text);
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-        views.setTextViewText(R.id.appwidget_text, text.toString());
-        Log.d(TAG, "New text set to the widget ID " + appWidgetId + ". The new word is: " + text);
-
 
         // Opens the config activity by click on widget
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
 
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
         //todo: to fix back button
 
 
+        setWords(context);
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
