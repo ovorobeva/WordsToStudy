@@ -43,7 +43,7 @@ public class AppWidget extends AppWidgetProvider {
         //todo: to fix back button
 
 
-        setWords(context);
+        setWords(context, views);
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }

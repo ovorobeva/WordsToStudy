@@ -20,7 +20,7 @@ public class Words {
     private static final String TAG = "Custom logs";
     private static List<GeneratedWords> wordsToProcess = new LinkedList<>();
 
-    public static void setWords(Context context) {
+    public static void setWords(Context context, RemoteViews views) {
         StringBuilder words = new StringBuilder();
 
         int wordsCount;
@@ -37,8 +37,8 @@ public class Words {
             words.append(s).append("\n");
         }
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         views.setTextViewText(R.id.appwidget_text, words);
+        Log.d(TAG, "setWords: Text updated. New text is: " + words);
 
         }
 
@@ -56,8 +56,8 @@ public class Words {
 
         for (GeneratedWords generatedWord : randomWords) {
             processedResult.add(generatedWord.getEn() + " - " + generatedWord.getRu());
-        Log.d(TAG, "processResponse: processed result is: " + processedResult);
     }
+        Log.d(TAG, "processResponse: processed result is: " + processedResult);
 
 }}
 
