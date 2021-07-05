@@ -54,21 +54,10 @@ public class Words {
             randomWords.add(response.get(id));
         }
 
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        JSONArray wordsArray = new JSONArray();
-
         for (GeneratedWords generatedWord : randomWords) {
-            JSONObject word = null;
-            try {
-                word = new JSONObject(gson.toJson(generatedWord));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            wordsArray.put(word);
-        }
+            processedResult.add(generatedWord.getEn() + " - " + generatedWord.getRu());
         Log.d(TAG, "processResponse: processed result is: " + processedResult);
     }
 
-}
+}}
 
