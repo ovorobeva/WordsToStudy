@@ -21,7 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class WordsClient {
     private static final Object OBJECT = new Object();
     private static final String TAG = "Custom logs";
-    private volatile static WordsClient wordsClient;
+    private static WordsClient wordsClient;
     private final String BASE_URL = "https://raw.githubusercontent.com/ovorobeva/WordsParser/master/src/main/resources/";
     private final WordsApi wordsApi;
 

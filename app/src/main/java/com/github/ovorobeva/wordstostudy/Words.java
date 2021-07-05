@@ -3,14 +3,6 @@ package com.github.ovorobeva.wordstostudy;
 import android.content.Context;
 import android.util.Log;
 import android.widget.RemoteViews;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;

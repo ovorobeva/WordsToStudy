@@ -15,11 +15,7 @@ import android.widget.TextView;
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
  */
 public class ConfigureActivity extends Activity {
-    //todo: to get rid of excess comments
-    //todo: to make logger
-    //path to the prefs on the device
     static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
-    //prefix to show with the setting name to separate settings for more than one widgets
     // /data/user/0/com.github.ovorobeva.wordstostudy/shared_prefs/com.github.ovorobeva.wordstostudy.NewAppWidget.xml
     static final String PREF_PREFIX_KEY = "appwidget_";
 

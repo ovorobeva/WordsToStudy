@@ -47,33 +47,15 @@ public class AppWidget extends AppWidgetProvider {
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
-//todo: to fix the schedule update. Didnt called until the next update
-    private static void _scheduleNextUpdate(Context context) {
-        AlarmManager alarmManager =
-                (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        // Substitute AppWidget for whatever you named your AppWidgetProvider subclass
-        Intent intent = new Intent(context, AppWidget.class);
-        intent.setAction(ACTION_SCHEDULED_UPDATE);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        Calendar schedule = Calendar.getInstance();
-        //Here is the example how to use prefs for the every widget
-       // int period = ConfigureActivity.loadPeriodFromPref(context, appWidgetId);
-        int period = ConfigureActivity.loadPeriodFromPref(context);
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, schedule.getTimeInMillis() + period, pendingIntent);
-        Log.d(TAG, "Schedule for updating is set. The next update will be done in " + period + "ms");
-    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
-            //RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-
-
             Log.d(TAG, "Update completed for widget ID " + appWidgetId);
         }
-        _scheduleNextUpdate(context);
+        Scheduler scheduler = Scheduler.getScheduler();
+        scheduler.scheduleNextUpdate(context);
     }
 
     @Override
