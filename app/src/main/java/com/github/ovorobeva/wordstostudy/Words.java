@@ -12,17 +12,18 @@ public class Words {
     private static final String TAG = "Custom logs";
     private static List<GeneratedWords> wordsToProcess = new LinkedList<>();
 
-    public static void setWords(Context context, RemoteViews views) {
+    public static void setWords(RemoteViews views, Preferences preferences) {
+        Log.d(TAG, "setWords: setWords is called");
         StringBuilder words = new StringBuilder();
 
         int wordsCount;
-        wordsCount = ConfigureActivity.loadWordsCountFromPref(context);
+        wordsCount = preferences.loadWordsCountFromPref();
 
         WordsClient wordsClient = WordsClient.getWordsClient();
         List<String> processedResult = new LinkedList<>();
 
         wordsClient.getWords(wordsToProcess);
-        Log.d(TAG, "getWords: Words to process are: " + wordsToProcess);
+        Log.d(TAG, "setWords: Words to process are: " + wordsToProcess);
         processResponse(wordsCount, wordsToProcess, processedResult);
 
         for (String s : processedResult) {

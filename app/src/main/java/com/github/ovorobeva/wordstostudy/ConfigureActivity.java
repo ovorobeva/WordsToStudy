@@ -11,22 +11,20 @@ import android.view.View;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import static com.github.ovorobeva.wordstostudy.AppWidget.PREFERENCES;
+
 /**
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
  */
 public class ConfigureActivity extends Activity {
-    static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
-    // /data/user/0/com.github.ovorobeva.wordstostudy/shared_prefs/com.github.ovorobeva.wordstostudy.NewAppWidget.xml
-    static final String PREF_PREFIX_KEY = "appwidget_";
 
-    private static final int EVERY_DAY = 5000;
-    private static final int EVERY_THREE_DAYS = 10000;
-    private static final int EVERY_MONDAY = 15000;
+    static final int EVERY_DAY = 5000;
+    static final int EVERY_THREE_DAYS = 10000;
+    static final int EVERY_MONDAY = 15000;
     private static int count = 3;
-
-    int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+    private Preferences preferences;// = new Preferences(ConfigureActivity.this);
+    private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     //todo: add other options to save in configurations (period, color, size, languages etc.)
-
     private int period;
 
 
@@ -39,8 +37,9 @@ public class ConfigureActivity extends Activity {
             // When the button is clicked, store the string locally
             //todo: to rewrite getWords() to throw the API-request and remove it into update
             //savePeriodToPref(context, mAppWidgetId, period); The example how to use widget id in prefs
-            savePeriodToPref(context, period);
-            saveWordsCountToPref(context, count);
+            preferences.savePeriodToPref(period);
+            preferences.saveWordsCountToPref(count);
+            preferences.saveIdToPref(mAppWidgetId);
 
             // It is the responsibility of the configuration activity to update the app widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -66,43 +65,6 @@ public class ConfigureActivity extends Activity {
         prefs.apply();
     }*/
 
-    static void savePeriodToPref(Context context, int period) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY, period);
-        prefs.apply();
-    }
-    static void saveWordsCountToPref(Context context, int count) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY, count);
-        prefs.apply();
-    }
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    //todo: to load other preferences like title value
-    static int loadPeriodFromPref(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY, EVERY_DAY);
-    }
-
-    //Here is the example how to use prefs according to the definite widget id
-  /*  static int loadPeriodFromPref(Context context, int mAppWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        return prefs.getInt(PREF_PREFIX_KEY + mAppWidgetId, EVERY_DAY);
-    }*/
-    static int loadWordsCountFromPref(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY, count);
-    }
-
-    //todo: to delete other preferences like title value
-    static void deletePeriodFromPref(Context context, int appWidgetId) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.remove(PREF_PREFIX_KEY + appWidgetId);
-        prefs.apply();
-    }
-
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -121,6 +83,7 @@ public class ConfigureActivity extends Activity {
         if (extras != null) {
             mAppWidgetId = extras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+            preferences = extras.getParcelable(PREFERENCES);
         }
 
         // If this activity was started with an intent without an app widget ID, finish with an error.
@@ -129,7 +92,7 @@ public class ConfigureActivity extends Activity {
             return;
         }
 //todo: to set other options as default
-        period = loadPeriodFromPref(ConfigureActivity.this);
+        period = preferences.loadPeriodFromPref();
     }
     @Override
     public void onResume() {

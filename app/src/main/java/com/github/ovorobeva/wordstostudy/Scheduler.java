@@ -27,7 +27,7 @@ public class Scheduler {
             return scheduler;
         }
     }
-    public void scheduleNextUpdate(Context context) {
+    public void scheduleNextUpdate(Context context, Preferences preferences) {
         AlarmManager alarmManager =
                 (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
@@ -36,9 +36,10 @@ public class Scheduler {
 
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         Calendar schedule = Calendar.getInstance();
-        int period = ConfigureActivity.loadPeriodFromPref(context);
+        int period = preferences.loadPeriodFromPref();
 
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, schedule.getTimeInMillis() + period, pendingIntent);
         Log.d(TAG, "Schedule for updating is set. The next update will be done in " + period + "ms");
     }
+
 }
