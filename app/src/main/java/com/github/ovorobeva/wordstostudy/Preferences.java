@@ -3,15 +3,13 @@ package com.github.ovorobeva.wordstostudy;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_DAY;
-
 public class Preferences {
 
     private static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
     // /data/user/0/com.github.ovorobeva.wordstostudy/shared_prefs/com.github.ovorobeva.wordstostudy.NewAppWidget.xml
     private static final String PREF_PREFIX_KEY = "appwidget_";
     private static final int DEFAULT_COUNT = 3;
-    private Context context;
+    private final Context context;
 
     public Preferences(Context context) {
         this.context = context;
@@ -36,9 +34,6 @@ public class Preferences {
         prefs.putInt(PREF_PREFIX_KEY + "wordscount", count);
         prefs.apply();
     }
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    //todo: to load other preferences like title value
     public int loadPeriodFromPref() {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME + "period", 0);
         //todo: to make default not an every day. How to place null instead?

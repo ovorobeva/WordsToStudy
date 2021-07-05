@@ -4,14 +4,11 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.TextView;
-
-import static com.github.ovorobeva.wordstostudy.AppWidget.PREFERENCES;
 
 /**
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
@@ -21,8 +18,7 @@ public class ConfigureActivity extends Activity {
     static final int EVERY_DAY = 5000;
     static final int EVERY_THREE_DAYS = 10000;
     static final int EVERY_MONDAY = 15000;
-    private static int count = 3;
-    private Preferences preferences;// = new Preferences(ConfigureActivity.this);
+    private final Preferences preferences = new Preferences(ConfigureActivity.this);
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     //todo: add other options to save in configurations (period, color, size, languages etc.)
     private int period;
@@ -32,20 +28,17 @@ public class ConfigureActivity extends Activity {
         public void onClick(View v) {
             final Context context = ConfigureActivity.this;
             TextView appwidget_text = findViewById(R.id.appwidget_text);
-            count = Integer.parseInt(appwidget_text.getText().toString());
+            int count = Integer.parseInt(appwidget_text.getText().toString());
 
-            // When the button is clicked, store the string locally
-            //todo: to rewrite getWords() to throw the API-request and remove it into update
+            //todo: to make widget to be shown on the  main screen
             //savePeriodToPref(context, mAppWidgetId, period); The example how to use widget id in prefs
             preferences.savePeriodToPref(period);
             preferences.saveWordsCountToPref(count);
             preferences.saveIdToPref(mAppWidgetId);
 
-            // It is the responsibility of the configuration activity to update the app widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
 
-            // Make sure we pass back the original appWidgetId
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
             setResult(RESULT_OK, resultValue);
@@ -69,24 +62,19 @@ public class ConfigureActivity extends Activity {
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        // Set the result to CANCELED.  This will cause the widget host to cancel
-        // out of the widget placement if the user presses the back button.
         setResult(RESULT_CANCELED);
 
         setContentView(R.layout.widget_configure);
 
         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
 
-        // Find the widget id from the intent.
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
         if (extras != null) {
             mAppWidgetId = extras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
-            preferences = extras.getParcelable(PREFERENCES);
         }
 
-        // If this activity was started with an intent without an app widget ID, finish with an error.
         if (mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             finish();
             return;
