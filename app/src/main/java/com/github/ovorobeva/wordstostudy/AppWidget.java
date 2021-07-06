@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 import static com.github.ovorobeva.wordstostudy.Words.setWords;
 
 /**
@@ -17,13 +18,10 @@ import static com.github.ovorobeva.wordstostudy.Words.setWords;
  */
 public class AppWidget extends AppWidgetProvider {
 
-    private static final String ACTION_SCHEDULED_UPDATE = "android.appwidget.action.ACTION_SCHEDULED_UPDATE";
     private static final String TAG = "Custom logs";
-    static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
-
     private static Preferences preferences;
 
-    Scheduler scheduler;
+    Scheduler scheduler = Scheduler.getScheduler();
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -57,8 +55,9 @@ public class AppWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
             Log.d(TAG, "Update completed for widget ID " + appWidgetId);
         }
-        scheduler = Scheduler.getScheduler();
-        scheduler.scheduleNextUpdate(context, preferences);
+        if (!scheduler.isCanselled()) {
+            scheduler.scheduleNextUpdate(context, preferences);
+        }
     }
 
     @Override
@@ -76,9 +75,11 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-            preferences.saveIdToPref(0);
-            preferences.savePeriodToPref(0);
-            preferences.saveWordsCountToPref(0);
+        preferences.saveIdToPref(0);
+        preferences.savePeriodToPref(0);
+        preferences.saveWordsCountToPref(0);
+
+        scheduler.cancelSchedule();
         Log.d(TAG, "The last widget is disabled");
     }
 
