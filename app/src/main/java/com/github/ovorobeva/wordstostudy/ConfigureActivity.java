@@ -18,7 +18,7 @@ public class ConfigureActivity extends Activity {
     static final int EVERY_DAY = 5000;
     static final int EVERY_THREE_DAYS = 10000;
     static final int EVERY_MONDAY = 15000;
-    private final Preferences preferences = new Preferences(ConfigureActivity.this);
+    private final Preferences preferences = Preferences.getPreferences(ConfigureActivity.this);
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     //todo: add other options to save in configurations (period, color, size, languages etc.)
     private int period;

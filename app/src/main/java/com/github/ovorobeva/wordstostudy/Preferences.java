@@ -9,10 +9,24 @@ public class Preferences {
     // /data/user/0/com.github.ovorobeva.wordstostudy/shared_prefs/com.github.ovorobeva.wordstostudy.NewAppWidget.xml
     private static final String PREF_PREFIX_KEY = "appwidget_";
     private static final int DEFAULT_COUNT = 3;
+    private static final Object OBJECT = new Object();
     private final Context context;
+    private static Preferences preferences;
 
-    public Preferences(Context context) {
+    private Preferences(Context context) {
         this.context = context;
+    }
+
+
+    public static Preferences getPreferences(Context context) {
+        if (preferences != null)
+            return preferences;
+
+        synchronized (OBJECT) {
+            if (preferences == null)
+                preferences = new Preferences(context);
+            return preferences;
+        }
     }
 
     public void savePeriodToPref(int period) {

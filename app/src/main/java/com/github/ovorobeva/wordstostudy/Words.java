@@ -12,8 +12,8 @@ public class Words {
     private static final String TAG = "Custom logs";
     private static List<GeneratedWords> wordsToProcess = new LinkedList<>();
 
-    public static void setWords(RemoteViews views, Preferences preferences) {
-        Log.d(TAG, "setWords: setWords is called");
+    public static synchronized void setWords(RemoteViews views, Preferences preferences) {
+        Log.d(TAG, "setWords: setWords is called: 1");
         StringBuilder words = new StringBuilder();
 
         int wordsCount;
@@ -22,6 +22,7 @@ public class Words {
         WordsClient wordsClient = WordsClient.getWordsClient();
         List<String> processedResult = new LinkedList<>();
 
+        Log.d(TAG, "setWords: calling getwords: 2");
         wordsClient.getWords(wordsToProcess);
         Log.d(TAG, "setWords: Words to process are: " + wordsToProcess);
         processResponse(wordsCount, wordsToProcess, processedResult);

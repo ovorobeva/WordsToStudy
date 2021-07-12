@@ -21,7 +21,7 @@ public class AppWidget extends AppWidgetProvider {
     private static final String TAG = "Custom logs";
     private static Preferences preferences;
 
-    Scheduler scheduler = Scheduler.getScheduler();
+    private Scheduler scheduler = Scheduler.getScheduler();;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -46,6 +46,9 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+
+        preferences = Preferences.getPreferences(context);
+
         for (int appWidgetId : appWidgetIds) {
             if (preferences.loadIdFromPref() == 0 &&
                     preferences.loadPeriodFromPref() == 0 &&
@@ -55,7 +58,7 @@ public class AppWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
             Log.d(TAG, "Update completed for widget ID " + appWidgetId);
         }
-        if (!scheduler.isCanselled()) {
+        if (!scheduler.isCancelled()) {
             scheduler.scheduleNextUpdate(context, preferences);
         }
     }
@@ -63,13 +66,12 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         // When the user deletes the widget, delete the preference associated with it.
-        //Todo: to stop updating of deleted widgets, to delete all preferences and to kill the schedule
+        //Todo: to stop updating  deleted widgets, to delete all preferences and to kill the schedule
 
     }
 
     @Override
     public void onEnabled(Context context) {
-        preferences = new Preferences(context);
         Log.d(TAG, "The first widget is created");
     }
 
@@ -79,12 +81,13 @@ public class AppWidget extends AppWidgetProvider {
         preferences.savePeriodToPref(0);
         preferences.saveWordsCountToPref(0);
 
-        scheduler.cancelSchedule();
+     //   scheduler.cancelSchedule();
         Log.d(TAG, "The last widget is disabled");
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
@@ -93,7 +96,6 @@ public class AppWidget extends AppWidgetProvider {
             onUpdate(context, manager, ids);
         }
 
-        super.onReceive(context, intent);
     }
 
 }

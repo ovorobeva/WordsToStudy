@@ -45,12 +45,16 @@ public class WordsClient {
     }
 
 
-    public void getWords(List<GeneratedWords> responseBody) {
+    public synchronized void getWords(List<GeneratedWords> responseBody) {
 
+        Log.d(TAG, "getWords: creating request: 3");
         Call<List<GeneratedWords>> getWordsRequest = wordsApi.sendRequest();
+
+        Log.d(TAG, "getWords: sending request: 4");
         getWordsRequest.enqueue(new Callback<List<GeneratedWords>>() {
             @Override
             public void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
+                Log.d(TAG, "onResponse: saving results of response : 5");
                 if (response.isSuccessful()) {
                     responseBody.addAll(response.body());
                     Log.d(TAG, "onResponse: Response by the url " + response.raw().request().url() + " is received.\nResponse to process is: " + responseBody);

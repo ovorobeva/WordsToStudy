@@ -15,7 +15,7 @@ public class Scheduler {
     private static final Object OBJECT = new Object();
     private PendingIntent pendingIntent;
     private AlarmManager alarmManager;
-    private Boolean isCancelled = false;
+    private static Boolean isCancelled = false;
 
     private Scheduler(){};
 
@@ -39,7 +39,9 @@ public class Scheduler {
         Calendar schedule = Calendar.getInstance();
         int period = preferences.loadPeriodFromPref();
 
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, schedule.getTimeInMillis() + period, pendingIntent);
+//todo: to replace the second parameter to the current midnight
+
+        alarmManager.setInexactRepeating(AlarmManager.RTC, schedule.getTimeInMillis(), period, pendingIntent);
         Log.d(TAG, "Schedule for updating is set. The next update will be done in " + period + "ms");
     }
     public void cancelSchedule(){
@@ -48,7 +50,7 @@ public class Scheduler {
         Log.d(TAG, "cancelSchedule: Schedule is cancelled");
     }
 
-    public boolean isCanselled(){
+    public boolean isCancelled(){
         return isCancelled;
     }
 
