@@ -38,7 +38,7 @@ public class Scheduler {
         pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
 
         Calendar schedule = Calendar.getInstance();
-        int period = preferences.loadPeriodFromPref();
+        int period = preferences.loadFromPref(Preferences.PERIOD);
 
 //todo: to replace the second parameter to the current midnight
 

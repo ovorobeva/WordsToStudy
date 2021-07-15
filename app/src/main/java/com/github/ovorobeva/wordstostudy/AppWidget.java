@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import static com.github.ovorobeva.wordstostudy.Preferences.ID;
+import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
+import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
-import static com.github.ovorobeva.wordstostudy.Words.setWords;
 
 /**
  * Implementation of App Widget functionality.
@@ -20,8 +22,10 @@ public class AppWidget extends AppWidgetProvider {
 
     private static final String TAG = "Custom logs";
     private static Preferences preferences;
+    private boolean isScheduledUpdate = false;
 
-    private Scheduler scheduler = Scheduler.getScheduler();;
+    private final Scheduler scheduler = Scheduler.getScheduler();
+    ;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -36,13 +40,14 @@ public class AppWidget extends AppWidgetProvider {
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
-    static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                    int appWidgetId) {
+    static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager) {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-        setWords(context, preferences);
 
-       // appWidgetManager.updateAppWidget(appWidgetId, views);
+        int wordsCount = preferences.loadFromPref(WORDS_COUNT);
+
+        WordsClient wordsClient = WordsClient.getWordsClient();
+        wordsClient.getWords(wordsCount, context, appWidgetManager, views);
     }
 
     @Override
@@ -51,17 +56,21 @@ public class AppWidget extends AppWidgetProvider {
         preferences = Preferences.getPreferences(context);
 
         for (int appWidgetId : appWidgetIds) {
-            if (preferences.loadIdFromPref() == 0 &&
-                    preferences.loadPeriodFromPref() == 0 &&
-                    preferences.loadWordsCountFromPref() == 0) break;
-            if (appWidgetId == preferences.loadIdFromPref())
-                updateTextAppWidget(context, appWidgetManager, appWidgetId);
+            if (preferences.loadFromPref(ID) == 0 &&
+                    preferences.loadFromPref(PERIOD) == 0 &&
+                    preferences.loadFromPref(WORDS_COUNT) == 0) {
+                isScheduledUpdate = false;
+                break;
+            }
+            if (isScheduledUpdate) {
+                updateTextAppWidget(context, appWidgetManager);
+                isScheduledUpdate = false;
+            }
             updateAppWidget(context, appWidgetManager, appWidgetId);
             Log.d(TAG, "Update completed for widget ID " + appWidgetId);
         }
-        if (!scheduler.isCancelled()) {
+        //todo: to make reSchedule after setting new value: cancel schedule if there were any change in a period
             scheduler.scheduleNextUpdate(context, preferences);
-        }
     }
 
     @Override
@@ -82,7 +91,7 @@ public class AppWidget extends AppWidgetProvider {
         preferences.savePeriodToPref(0);
         preferences.saveWordsCountToPref(0);
 
-     //   scheduler.cancelSchedule();
+      //  scheduler.cancelSchedule();
         Log.d(TAG, "The last widget is disabled");
     }
 
@@ -91,6 +100,7 @@ public class AppWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
+            isScheduledUpdate = true;
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
             int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             //todo: why to call onUpdate if we have scheduled update? To remove code from upd

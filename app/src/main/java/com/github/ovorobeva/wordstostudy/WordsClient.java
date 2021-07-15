@@ -6,16 +6,10 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
-import java.util.logging.Level;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -50,22 +44,10 @@ public class WordsClient {
     }
 
 
-    public synchronized void getWords(List<GeneratedWords> responseBody, int wordsCount, Context context) {
-
-        Log.d(TAG, "getWords: creating request: 3");
+    public synchronized void getWords(int wordsCount, Context context, AppWidgetManager appWidgetManager, RemoteViews views) {
+        List<GeneratedWords> responseBody = new ArrayList<>();
         Call<List<GeneratedWords>> getWordsRequest = wordsApi.sendRequest();
 
-        Log.d(TAG, "getWords: sending request: 4");
-        ///////////
-
-
-
-
-
-
-
-
-       ////////////////
         getWordsRequest.enqueue(new Callback<List<GeneratedWords>>() {
             @Override
             public synchronized void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
@@ -101,23 +83,12 @@ public class WordsClient {
                     }
                     Log.d(TAG, "onResponse: words are: " + words);
 
+                    views.setTextViewText(R.id.words_count_edit_text, words);
 
-                    RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-
-                    views.setTextViewText(R.id.appwidget_text, words);
-
-                    final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
                     final ComponentName cn = new ComponentName(context, AppWidget.class);
-                    mgr.updateAppWidget(cn, views);
-
-
-
-
-
-
+                    appWidgetManager.updateAppWidget(cn, views);
                 } else
                     Log.e(TAG, "onResponse: There is an error during request. Response code is: " + response.code() + " url is: " + response.raw().request().url());
-
             }
 
             @Override

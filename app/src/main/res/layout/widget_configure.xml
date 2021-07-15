@@ -14,10 +14,11 @@
         android:text="@string/configure" />
 
     <EditText
-        android:id="@+id/appwidget_text"
+        android:id="@+id/words_count_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text" />
+        android:inputType="text"
+        android:autofillHints="" />
     <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content">

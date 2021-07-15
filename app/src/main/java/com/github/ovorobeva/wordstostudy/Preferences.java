@@ -5,13 +5,15 @@ import android.content.SharedPreferences;
 
 public class Preferences {
 
+    public static final String ID = "id";
+    public static final String WORDS_COUNT = "wordscount";
+    public static final String PERIOD = "period";
     private static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
-    // /data/user/0/com.github.ovorobeva.wordstostudy/shared_prefs/com.github.ovorobeva.wordstostudy.NewAppWidget.xml
     private static final String PREF_PREFIX_KEY = "appwidget_";
     private static final int DEFAULT_COUNT = 3;
     private static final Object OBJECT = new Object();
-    private final Context context;
     private static Preferences preferences;
+    private final Context context;
 
     private Preferences(Context context) {
         this.context = context;
@@ -35,41 +37,27 @@ public class Preferences {
         prefs.apply();
     }
 
-
     public void saveIdToPref(int mAppWidgetId) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        if (loadIdFromPref() == 0 || mAppWidgetId == 0) {
+        if (loadFromPref(ID) == 0 || mAppWidgetId == 0) {
             prefs.putInt(PREF_PREFIX_KEY + "id", mAppWidgetId);
         }
         prefs.apply();
     }
+
     public void saveWordsCountToPref(int count) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putInt(PREF_PREFIX_KEY + "wordscount", count);
         prefs.apply();
     }
-    public int loadPeriodFromPref() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME + "period", 0);
-        //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY, 0);
-    }
 
-    //Here is the example how to use prefs according to the definite widget id
-  /*  static int loadPeriodFromPref(Context context, int mAppWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        return prefs.getInt(PREF_PREFIX_KEY + mAppWidgetId, EVERY_DAY);
-    }*/
-    public int loadWordsCountFromPref() {
+    public int loadFromPref(String parameter) {
+        int defaultValue = 0;
+        if (parameter.equals("wordscount")) defaultValue = DEFAULT_COUNT;
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY + "wordscount", DEFAULT_COUNT);
-    }
+        return prefs.getInt(PREF_PREFIX_KEY + parameter, defaultValue);
 
-    public int loadIdFromPref() {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY + "id", 0);
     }
-
 
 }
