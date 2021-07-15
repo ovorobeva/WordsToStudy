@@ -40,8 +40,9 @@ public class AppWidget extends AppWidgetProvider {
                                     int appWidgetId) {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-        setWords(views, preferences);
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+        setWords(context, preferences);
+
+       // appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     @Override

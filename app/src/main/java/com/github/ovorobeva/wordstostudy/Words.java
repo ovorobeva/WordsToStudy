@@ -12,32 +12,31 @@ public class Words {
     private static final String TAG = "Custom logs";
     private static List<GeneratedWords> wordsToProcess = new LinkedList<>();
 
-    public static synchronized void setWords(RemoteViews views, Preferences preferences) {
+    public static synchronized void setWords(Context context, Preferences preferences) {
         Log.d(TAG, "setWords: setWords is called: 1");
-        StringBuilder words = new StringBuilder();
+     //   StringBuilder words = new StringBuilder();
 
-        int wordsCount;
-        wordsCount = preferences.loadWordsCountFromPref();
+        int wordsCount = preferences.loadWordsCountFromPref();
 
         WordsClient wordsClient = WordsClient.getWordsClient();
-        List<String> processedResult = new LinkedList<>();
+        //List<String> processedResult = new LinkedList<>();
 
         Log.d(TAG, "setWords: calling getwords: 2");
-        wordsClient.getWords(wordsToProcess);
-        Log.d(TAG, "setWords: Words to process are: " + wordsToProcess);
+       // wordsClient.getWords(wordsToProcess, wordsCount, views);
+        wordsClient.getWords(wordsToProcess,wordsCount, context);
+   /*     Log.d(TAG, "setWords: Words to process are: " + wordsToProcess);
         processResponse(wordsCount, wordsToProcess, processedResult);
 
         for (String s : processedResult) {
             words.append(s).append("\n");
         }
-
-        views.setTextViewText(R.id.appwidget_text, words);
-        Log.d(TAG, "setWords: Text updated. New text is: " + words);
+*/
+  //      Log.d(TAG, "setWords: Text updated. New text is: " + words);
 
         }
 
 
-    private static void processResponse(int wordsCount, List<GeneratedWords> response, List<String> processedResult) {
+/*    private static void processResponse(int wordsCount, List<GeneratedWords> response, List<String> processedResult) {
         if (response.isEmpty()) return;
         Random random = new Random();
         List<GeneratedWords> randomWords = new LinkedList<>();
@@ -53,5 +52,5 @@ public class Words {
     }
         Log.d(TAG, "processResponse: processed result is: " + processedResult);
 
-}}
+}*/}
 

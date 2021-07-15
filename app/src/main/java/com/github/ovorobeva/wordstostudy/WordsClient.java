@@ -1,6 +1,10 @@
 package com.github.ovorobeva.wordstostudy;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.util.Log;
+import android.widget.RemoteViews;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,6 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 
 import retrofit2.Call;
@@ -45,19 +50,70 @@ public class WordsClient {
     }
 
 
-    public synchronized void getWords(List<GeneratedWords> responseBody) {
+    public synchronized void getWords(List<GeneratedWords> responseBody, int wordsCount, Context context) {
 
         Log.d(TAG, "getWords: creating request: 3");
         Call<List<GeneratedWords>> getWordsRequest = wordsApi.sendRequest();
 
         Log.d(TAG, "getWords: sending request: 4");
+        ///////////
+
+
+
+
+
+
+
+
+       ////////////////
         getWordsRequest.enqueue(new Callback<List<GeneratedWords>>() {
             @Override
-            public void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
+            public synchronized void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
                 Log.d(TAG, "onResponse: saving results of response : 5");
                 if (response.isSuccessful()) {
                     responseBody.addAll(response.body());
                     Log.d(TAG, "onResponse: Response by the url " + response.raw().request().url() + " is received.\nResponse to process is: " + responseBody);
+
+
+
+                    if (responseBody.isEmpty()) return;
+                    Random random = new Random();
+                    List<GeneratedWords> randomWords = new LinkedList<>();
+                    int id;
+                    for (int i = 0; i < wordsCount; i++){
+                        id = random.nextInt(responseBody.size());
+                        if (id > 0) id--;
+                        randomWords.add(responseBody.get(id));
+                    }
+                    Log.d(TAG, "onResponse: random words are: " + randomWords);
+
+                    List<String> processedResult = new LinkedList<>();
+
+                    for (GeneratedWords generatedWord : randomWords) {
+                        processedResult.add(generatedWord.getEn() + " - " + generatedWord.getRu());
+                    }
+
+
+                    StringBuilder words = new StringBuilder();
+
+                    for (String s : processedResult) {
+                        words.append(s).append("\n");
+                    }
+                    Log.d(TAG, "onResponse: words are: " + words);
+
+
+                    RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
+
+                    views.setTextViewText(R.id.appwidget_text, words);
+
+                    final AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+                    final ComponentName cn = new ComponentName(context, AppWidget.class);
+                    mgr.updateAppWidget(cn, views);
+
+
+
+
+
 
                 } else
                     Log.e(TAG, "onResponse: There is an error during request. Response code is: " + response.code() + " url is: " + response.raw().request().url());

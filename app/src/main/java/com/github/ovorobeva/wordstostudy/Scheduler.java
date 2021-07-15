@@ -36,6 +36,7 @@ public class Scheduler {
         intent.setAction(ACTION_SCHEDULED_UPDATE);
 
         pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+
         Calendar schedule = Calendar.getInstance();
         int period = preferences.loadPeriodFromPref();
 
