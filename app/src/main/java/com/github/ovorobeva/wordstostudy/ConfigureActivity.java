@@ -23,18 +23,20 @@ public class ConfigureActivity extends Activity {
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     //todo: add other options to save in configurations (period, color, size, languages etc.)
     private int period;
+    private int color;
 
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
             final Context context = ConfigureActivity.this;
-            TextView appwidget_text = findViewById(R.id.words_count_edit_text);
+            TextView appwidget_text = findViewById(R.id.words);
             int count = Integer.parseInt(appwidget_text.getText().toString());
 
             //todo: to make widget to be shown on the  main screen
             preferences.saveIdToPref(mAppWidgetId);
             preferences.savePeriodToPref(period);
             preferences.saveWordsCountToPref(count);
+            preferences.saveWordsColorToPref(color, mAppWidgetId);
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
@@ -93,8 +95,10 @@ public class ConfigureActivity extends Activity {
 
         }
         checkedRadioButton.setChecked(true);
+        checkedRadioButton = findViewById(R.id.white_text);
+        checkedRadioButton.setChecked(true);
 
-        EditText wordsCountText = findViewById(R.id.words_count_edit_text);
+        EditText wordsCountText = findViewById(R.id.words);
         wordsCountText.setText(String.valueOf(wordCount));
 //todo: to set other options as default
     }
@@ -107,7 +111,18 @@ public class ConfigureActivity extends Activity {
 
     }
 
-    public void radioButtonClickListener(View view) {
+    public void radioButtonColorClickListener(View view) {
+        RadioButton checkedRadioButton = (RadioButton) view;
+        switch (checkedRadioButton.getId()) {
+            case R.id.white_text:
+                color = R.color.white;
+                break;
+            case R.id.black_text:
+                color = R.color.black;
+        }
+    }
+
+    public void radioButtonPeriodClickListener(View view) {
         RadioButton checkedRadioButton = (RadioButton) view;
         switch (checkedRadioButton.getId()) {
             case R.id.every_day:

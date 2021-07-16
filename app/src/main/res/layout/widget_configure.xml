@@ -14,32 +14,66 @@
         android:text="@string/configure" />
 
     <EditText
-        android:id="@+id/words_count_edit_text"
+        android:id="@+id/words"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"
         android:autofillHints="" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update period" />
+
     <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <RadioButton
             android:id="@+id/every_day"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="radioButtonClickListener"
+            android:onClick="radioButtonPeriodClickListener"
             android:text="@string/oncePer24hrsUpdrBtn"/>
         <RadioButton
             android:id="@+id/every_three_days"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="radioButtonClickListener"
+            android:onClick="radioButtonPeriodClickListener"
             android:text="@string/oncePer3DaysUpdrBtn"/>
         <RadioButton
             android:id="@+id/every_monday"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="radioButtonClickListener"
+            android:onClick="radioButtonPeriodClickListener"
             android:text="@string/oncePerWeekUpdrBtn"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Color" />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RadioButton
+            android:id="@+id/black_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="radioButtonColorClickListener"
+            android:text="Black" />
+
+        <RadioButton
+            android:id="@+id/white_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="radioButtonColorClickListener"
+            android:text="White" />
+
     </RadioGroup>
 
     <Button

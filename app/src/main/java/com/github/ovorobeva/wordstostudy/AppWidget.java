@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.TextView;
 
 import static com.github.ovorobeva.wordstostudy.Preferences.ID;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
@@ -32,10 +33,13 @@ public class AppWidget extends AppWidgetProvider {
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        int color = preferences.loadColorFromPref(appWidgetId);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
+
+        views.setTextColor(R.id.words, color);
         //todo: to fix back button
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }

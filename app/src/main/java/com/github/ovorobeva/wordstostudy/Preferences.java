@@ -51,6 +51,17 @@ public class Preferences {
         prefs.apply();
     }
 
+    public void saveWordsColorToPref(int color, int id) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.putInt(PREF_PREFIX_KEY + id + "color", color);
+        prefs.apply();
+    }
+    public int loadColorFromPref(int id){
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+        return prefs.getInt(PREF_PREFIX_KEY + id + "color", 1);
+
+    }
+
     public int loadFromPref(String parameter) {
         int defaultValue = 0;
         if (parameter.equals("wordscount")) defaultValue = DEFAULT_COUNT;
