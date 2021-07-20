@@ -1,22 +1,23 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="?attr/appWidgetBackgroundColor"
     android:padding="@dimen/widget_margin"
+    android:textAlignment="viewStart"
     android:theme="@style/ThemeOverlay.WordsToStudy.AppWidgetContainer">
 
     <TextView
-        android:id="@+id/words"
+        android:id="@+id/words_edit_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:layout_margin="8dp"
         android:background="?attr/appWidgetBackgroundColor"
         android:contentDescription="@string/appwidget_text"
         android:text="@string/appwidget_text"
-        android:textColor="?attr/appWidgetTextColor"
-        android:textSize="24sp"
-        android:textStyle="bold|italic" />
+        android:textAlignment="viewStart"
+        android:textColor="@color/white"
+        android:textColorHighlight="@color/transparent"
+        android:textColorLink="@color/transparent"
+        android:textSize="15sp" />
 </RelativeLayout>

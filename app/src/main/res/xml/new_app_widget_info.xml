@@ -3,9 +3,9 @@
     android:configure="com.github.ovorobeva.wordstostudy.ConfigureActivity"
     android:initialKeyguardLayout="@layout/widget"
     android:initialLayout="@layout/widget"
-    android:minWidth="110dp"
+    android:minWidth="160dp"
     android:minHeight="40dp"
-    android:previewImage="@drawable/example_appwidget_preview"
+    android:previewImage="@drawable/appwidget_preview"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="360000"
     android:widgetCategory="home_screen|keyguard" />

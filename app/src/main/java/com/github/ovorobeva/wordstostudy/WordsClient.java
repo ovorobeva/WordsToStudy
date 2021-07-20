@@ -83,7 +83,7 @@ public class WordsClient {
                     }
                     Log.d(TAG, "onResponse: words are: " + words);
 
-                    views.setTextViewText(R.id.words, words);
+                    views.setTextViewText(R.id.words_edit_text, words);
 
                     final ComponentName cn = new ComponentName(context, AppWidget.class);
                     appWidgetManager.updateAppWidget(cn, views);

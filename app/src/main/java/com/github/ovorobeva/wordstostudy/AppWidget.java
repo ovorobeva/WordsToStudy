@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.TextView;
@@ -23,13 +25,12 @@ public class AppWidget extends AppWidgetProvider {
 
     private static final String TAG = "Custom logs";
     private static Preferences preferences;
-    private boolean isScheduledUpdate = false;
-
     private final Scheduler scheduler = Scheduler.getScheduler();
+    private boolean isScheduledUpdate = false;
     ;
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                                int appWidgetId, Preferences preferences) {
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
@@ -39,7 +40,8 @@ public class AppWidget extends AppWidgetProvider {
         PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
-        views.setTextColor(R.id.words, color);
+        if (color == Color.BLACK || color == Color.WHITE)
+            views.setTextColor(R.id.words_edit_text, color);
         //todo: to fix back button
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
@@ -70,11 +72,11 @@ public class AppWidget extends AppWidgetProvider {
                 updateTextAppWidget(context, appWidgetManager);
                 isScheduledUpdate = false;
             }
-            updateAppWidget(context, appWidgetManager, appWidgetId);
+            updateAppWidget(context, appWidgetManager, appWidgetId, preferences);
             Log.d(TAG, "Update completed for widget ID " + appWidgetId);
         }
         //todo: to make reSchedule after setting new value: cancel schedule if there were any change in a period
-            scheduler.scheduleNextUpdate(context, preferences);
+        scheduler.scheduleNextUpdate(context, preferences);
     }
 
     @Override
@@ -91,11 +93,12 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-        preferences.saveIdToPref(0);
-        preferences.savePeriodToPref(0);
-        preferences.saveWordsCountToPref(0);
-
-      //  scheduler.cancelSchedule();
+        if (preferences != null) {
+            preferences.saveIdToPref(0);
+            preferences.savePeriodToPref(0);
+            preferences.saveWordsCountToPref(0);
+        }
+        //  scheduler.cancelSchedule();
         Log.d(TAG, "The last widget is disabled");
     }
 

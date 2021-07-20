@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WordsToStudy</string>
+    <string name="updPeriodLbl">Выбрать период обновления</string>
+    <string name="configure">Настройки</string>
+    <string name="add_widget">Применить</string>
+    <string name="radioBtnDaily">Ежедневно в полночь</string>
+    <string name="radioBtnThreeDays">Раз в три дня</string>
+    <string name="radioBtnWeekly">Еженедельно в понедельник</string>
+    <string name="customPeriodBtn">Задать свой</string>
+    <string name="colorLbl">Цвет</string>
+    <string name="radioBtnWhite">Белый</string>
+    <string name="RadioBtnBlack">Черный</string>
+    <string name="wordsCountLbl">Количество слов</string>
+</resources>

@@ -53,12 +53,15 @@ public class Preferences {
 
     public void saveWordsColorToPref(int color, int id) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY + id + "color", color);
+        prefs.putInt(PREF_PREFIX_KEY + id + " color", color);
         prefs.apply();
     }
-    public int loadColorFromPref(int id){
+
+    public int loadColorFromPref(int id) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        return prefs.getInt(PREF_PREFIX_KEY + id + "color", 1);
+        if (prefs.contains(PREF_PREFIX_KEY + id + " color"))
+            return prefs.getInt(PREF_PREFIX_KEY + id + " color", 1);
+        else return 1;
 
     }
 
