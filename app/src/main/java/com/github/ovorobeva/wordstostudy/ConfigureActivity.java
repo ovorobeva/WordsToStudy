@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
@@ -24,15 +25,27 @@ public class ConfigureActivity extends Activity {
     static final int EVERY_DAY = 1;
     static final int EVERY_THREE_DAYS = 3;
     static final int EVERY_MONDAY = 7;
+
     private final Preferences preferences = Preferences.getPreferences(ConfigureActivity.this);
+
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    //todo: add other options to save in configurations (period, color, size, languages etc.)
+
     private int period;
     private int color;
+    private int wordCount;
+
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
+            boolean isPeriodChanged = false;
+            boolean isColorChanged = false;
+            boolean isWordCountChanged = false;
+
             final Context context = ConfigureActivity.this;
+            if (preferences.loadColorFromPref(mAppWidgetId) == color) isColorChanged = true;
+            if (preferences.loadFromPref(Preferences.WORDS_COUNT) == wordCount)
+                isWordCountChanged = true;
+            if (preferences.loadFromPref(Preferences.PERIOD) == period) isColorChanged = true;
 
             //todo: to make widget to be shown on the  main screen
             preferences.savePeriodToPref(period);
@@ -40,16 +53,22 @@ public class ConfigureActivity extends Activity {
             preferences.saveWordsColorToPref(color, mAppWidgetId);
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId, preferences);
+            if (isColorChanged)
+                AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId, preferences);
+
+            if (isPeriodChanged)
             AppWidget.updateTextAppWidget(context, appWidgetManager);
+
+            if (isWordCountChanged && !isPeriodChanged)
+                Toast.makeText(ConfigureActivity.this, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
 
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+
             setResult(RESULT_OK, resultValue);
             finish();
         }
     };
-    private int wordCount;
 
 
     public ConfigureActivity() {

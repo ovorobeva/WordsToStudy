@@ -7,7 +7,6 @@ import android.os.Parcelable;
 
 public class Preferences implements Parcelable {
 
-    public static final String ID = "id";
     public static final String WORDS_COUNT = "wordscount";
     public static final String PERIOD = "period";
     private static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
@@ -69,7 +68,7 @@ public class Preferences implements Parcelable {
     }
 
 
-    public void deleteWordsColorFromPref(int color, int id) {
+    public void deleteWordsColorFromPref(int id) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.remove(PREF_PREFIX_KEY + id + "_color");
         prefs.apply();

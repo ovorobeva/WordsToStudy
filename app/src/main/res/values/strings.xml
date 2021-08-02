@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">WordsToStudy</string>
     <string name="appwidget_text" translatable="false">hello - привет\nhome - дом\npeace - мир</string>
-    <string name="configure">Configure</string>
-    <string name="add_widget">Add widget</string>
+    <string name="configure">Settings</string>
+    <string name="add_widget">Apply</string>
     <string name="updPeriodLbl">Choose update period</string>
     <string name="radioBtnDaily">Daily at midnight</string>
     <string name="radioBtnThreeDays">Every three days</string>
@@ -12,4 +12,5 @@
     <string name="radioBtnWhite">White</string>
     <string name="RadioBtnBlack">Black</string>
     <string name="wordsCountLbl">Count of words</string>
+    <string name="wordsCountChangedMsg">New words count will be applied on next update</string>
 </resources>

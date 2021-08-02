@@ -12,4 +12,5 @@
     <string name="radioBtnWhite">Белый</string>
     <string name="RadioBtnBlack">Черный</string>
     <string name="wordsCountLbl">Количество слов</string>
+    <string name="wordsCountChangedMsg">Новое количество слов будет применено при следующем обновлении</string>
 </resources>

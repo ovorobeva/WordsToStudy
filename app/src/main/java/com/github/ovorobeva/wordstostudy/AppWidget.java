@@ -12,7 +12,6 @@ import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.TextView;
 
-import static com.github.ovorobeva.wordstostudy.Preferences.ID;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
 import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
@@ -23,7 +22,6 @@ import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDAT
  */
 public class AppWidget extends AppWidgetProvider {
 
-    static final String PREFERENCES = "Preferences";
     static final String TAG = "Custom logs";
     private static Preferences preferences;
     private final Scheduler scheduler = Scheduler.getScheduler();
@@ -63,12 +61,11 @@ public class AppWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
         if (preferences == null)
-        preferences = Preferences.getPreferences(context);
+            preferences = Preferences.getPreferences(context);
 
         Log.d(TAG, "onUpdate: prefs are: " + preferences);
         for (int appWidgetId : appWidgetIds) {
-            if (preferences.loadFromPref(ID) == 0 &&
-                    preferences.loadFromPref(PERIOD) == 0 &&
+            if (preferences.loadFromPref(PERIOD) == 0 &&
                     preferences.loadFromPref(WORDS_COUNT) == 0) {
                 isScheduledUpdate = false;
                 break;
@@ -94,7 +91,9 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
-        // When the user deletes the widget, delete the preference associated with it.
+        for (int appWidgetId : appWidgetIds) {
+            preferences.deleteWordsColorFromPref(appWidgetId);
+        }
         //Todo: to stop updating  deleted widgets, to delete all preferences and to kill the schedule
 
     }

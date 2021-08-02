@@ -12,4 +12,5 @@
     <string name="radioBtnWhite">White</string>
     <string name="RadioBtnBlack">Black</string>
     <string name="wordsCountLbl">Count of words</string>
+    <string name="wordsCountChangedMsg">New words count will be applied on next update</string>
 </resources>
