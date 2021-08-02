@@ -2,8 +2,10 @@ package com.github.ovorobeva.wordstostudy;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-public class Preferences {
+public class Preferences implements Parcelable {
 
     public static final String ID = "id";
     public static final String WORDS_COUNT = "wordscount";
@@ -37,14 +39,6 @@ public class Preferences {
         prefs.apply();
     }
 
-    public void saveIdToPref(int mAppWidgetId) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        if (loadFromPref(ID) == 0 || mAppWidgetId == 0) {
-            prefs.putInt(PREF_PREFIX_KEY + "id", mAppWidgetId);
-        }
-        prefs.apply();
-    }
-
     public void saveWordsCountToPref(int count) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putInt(PREF_PREFIX_KEY + "wordscount", count);
@@ -53,14 +47,14 @@ public class Preferences {
 
     public void saveWordsColorToPref(int color, int id) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY + id + " color", color);
+        prefs.putInt(PREF_PREFIX_KEY + id + "_color", color);
         prefs.apply();
     }
 
     public int loadColorFromPref(int id) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (prefs.contains(PREF_PREFIX_KEY + id + " color"))
-            return prefs.getInt(PREF_PREFIX_KEY + id + " color", 1);
+            return prefs.getInt(PREF_PREFIX_KEY + id + "_color", 1);
         else return 1;
 
     }
@@ -74,4 +68,39 @@ public class Preferences {
 
     }
 
+
+    public void deleteWordsColorFromPref(int color, int id) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.remove(PREF_PREFIX_KEY + id + "_color");
+        prefs.apply();
+    }
+
+
+
+    protected Preferences(Parcel in) {
+        context = (Context) in.readValue(Context.class.getClassLoader());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(context);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Preferences> CREATOR = new Parcelable.Creator<Preferences>() {
+        @Override
+        public Preferences createFromParcel(Parcel in) {
+            return new Preferences(in);
+        }
+
+        @Override
+        public Preferences[] newArray(int size) {
+            return new Preferences[size];
+        }
+    };
 }

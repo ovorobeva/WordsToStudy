@@ -57,11 +57,10 @@ public class Scheduler {
 
 
 //todo: to replace the second parameter to the current midnight
+        schedule.add(Calendar.DATE, period + 1);
+        alarmManager.set(AlarmManager.RTC, schedule.getTimeInMillis(), pendingIntent);
 
-        alarmManager.setInexactRepeating(AlarmManager.RTC, schedule.getTimeInMillis(), delta, pendingIntent);
-        Calendar nextUpdate = Calendar.getInstance();
-        nextUpdate.setTimeInMillis(schedule.getTimeInMillis() + delta);
-        Log.d(TAG, "Schedule for updating is set. The next update will be done " + nextUpdate.getTime());
+        Log.d(TAG, "scheduleNextUpdate: Next update will be done on " + schedule.getTime());
     }
 
     public void cancelSchedule() {

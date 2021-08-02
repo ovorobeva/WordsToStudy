@@ -29,18 +29,19 @@ public class ConfigureActivity extends Activity {
     //todo: add other options to save in configurations (period, color, size, languages etc.)
     private int period;
     private int color;
+
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
             final Context context = ConfigureActivity.this;
 
             //todo: to make widget to be shown on the  main screen
-            preferences.saveIdToPref(mAppWidgetId);
             preferences.savePeriodToPref(period);
             preferences.saveWordsCountToPref(wordCount);
             preferences.saveWordsColorToPref(color, mAppWidgetId);
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
             AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId, preferences);
+            AppWidget.updateTextAppWidget(context, appWidgetManager);
 
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
@@ -68,6 +69,7 @@ public class ConfigureActivity extends Activity {
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
+
         if (extras != null) {
             mAppWidgetId = extras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
