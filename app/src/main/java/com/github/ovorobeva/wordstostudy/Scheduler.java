@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.util.Log;
 
 import java.util.Calendar;
-import java.util.Date;
 
 public class Scheduler {
     static final String ACTION_SCHEDULED_UPDATE = "android.appwidget.action.ACTION_SCHEDULED_UPDATE";
@@ -35,7 +34,6 @@ public class Scheduler {
     }
 
     public void scheduleNextUpdate(Context context, Preferences preferences) {
-        long delta;
         alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         Intent intent = new Intent(context, AppWidget.class);
@@ -43,11 +41,13 @@ public class Scheduler {
 
         pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
 
-        int period = preferences.loadFromPref(Preferences.PERIOD);
-        delta = AlarmManager.INTERVAL_DAY * period + AlarmManager.INTERVAL_DAY;
+        int period = preferences.loadSettingFromPref(Preferences.PERIOD);
 
 
         Calendar schedule = Calendar.getInstance();
+
+        preferences.saveUpdateTimeToPref(schedule, Preferences.LAST);
+
         if (period == ConfigureActivity.EVERY_MONDAY)
             schedule.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
         schedule.set(Calendar.MILLISECOND, 0);

@@ -6,11 +6,9 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.TextView;
 
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
 import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
@@ -51,7 +49,7 @@ public class AppWidget extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
 
-        int wordsCount = preferences.loadFromPref(WORDS_COUNT);
+        int wordsCount = preferences.loadSettingFromPref(WORDS_COUNT);
 
         WordsClient wordsClient = WordsClient.getWordsClient();
         wordsClient.getWords(wordsCount, context, appWidgetManager, views);
@@ -65,8 +63,8 @@ public class AppWidget extends AppWidgetProvider {
 
         Log.d(TAG, "onUpdate: prefs are: " + preferences);
         for (int appWidgetId : appWidgetIds) {
-            if (preferences.loadFromPref(PERIOD) == 0 &&
-                    preferences.loadFromPref(WORDS_COUNT) == 0) {
+            if (preferences.loadSettingFromPref(PERIOD) == 0 &&
+                    preferences.loadSettingFromPref(WORDS_COUNT) == 0) {
                 isScheduledUpdate = false;
                 break;
             }
@@ -106,8 +104,7 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         if (preferences != null) {
-            preferences.savePeriodToPref(0);
-            preferences.saveWordsCountToPref(0);
+            preferences.clearPrefs();
         }
         isFirstUpdate = true;
         //  scheduler.cancelSchedule();

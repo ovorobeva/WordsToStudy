@@ -1,7 +1,6 @@
 package com.github.ovorobeva.wordstostudy;
 
 import android.app.Activity;
-import android.app.AlarmManager;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
@@ -11,10 +10,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -42,14 +39,13 @@ public class ConfigureActivity extends Activity {
             boolean isWordCountChanged = false;
 
             final Context context = ConfigureActivity.this;
-            if (preferences.loadColorFromPref(mAppWidgetId) == color) isColorChanged = true;
-            if (preferences.loadFromPref(Preferences.WORDS_COUNT) == wordCount)
-                isWordCountChanged = true;
-            if (preferences.loadFromPref(Preferences.PERIOD) == period) isColorChanged = true;
+            if (preferences.loadColorFromPref(mAppWidgetId) != color) isColorChanged = true;
+            if (preferences.loadSettingFromPref(Preferences.WORDS_COUNT) != wordCount) isWordCountChanged = true;
+            if (preferences.loadSettingFromPref(Preferences.PERIOD) != period) isColorChanged = true;
 
             //todo: to make widget to be shown on the  main screen
-            preferences.savePeriodToPref(period);
-            preferences.saveWordsCountToPref(wordCount);
+            preferences.saveSettingToPref(period, Preferences.PERIOD);
+            preferences.saveSettingToPref(wordCount, Preferences.WORDS_COUNT);
             preferences.saveWordsColorToPref(color, mAppWidgetId);
 
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -124,8 +120,8 @@ public class ConfigureActivity extends Activity {
             }
         });
 
-        period = preferences.loadFromPref(Preferences.PERIOD);
-        wordCount = preferences.loadFromPref(Preferences.WORDS_COUNT);
+        period = preferences.loadSettingFromPref(Preferences.PERIOD);
+        wordCount = preferences.loadSettingFromPref(Preferences.WORDS_COUNT);
         if (wordCount == 0) wordCount = 3;
 
         RadioButton checkedRadioButton;
