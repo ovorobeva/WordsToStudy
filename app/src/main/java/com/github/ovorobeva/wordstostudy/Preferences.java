@@ -32,18 +32,20 @@ public class Preferences implements Parcelable {
     private static Preferences preferences;
     private final Context context;
 
-
+/*
     private Preferences(Context context) {
         this.context = context;
-        clearPrefs();
-    }
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.clear();
+        prefs.apply();
+    }*/
     //todo: to collapse all the saves
 
     protected Preferences(Parcel in) {
         context = (Context) in.readValue(Context.class.getClassLoader());
     }
 
-    public static Preferences getPreferences(Context context) {
+/*    public static Preferences getPreferences(Context context) {
         if (preferences != null)
             return preferences;
 
@@ -52,15 +54,15 @@ public class Preferences implements Parcelable {
                 preferences = new Preferences(context);
             return preferences;
         }
-    }
+    }*/
 
-    public void clearPrefs() {
+    public static void clearPrefs(Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.clear();
         prefs.apply();
     }
 
-    public boolean arePrefsEmpty() {
+    public static boolean arePrefsEmpty(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (!(prefs.contains(PREF_PREFIX_KEY + "period")
                 || prefs.contains(PREF_PREFIX_KEY + "wordscount")
@@ -70,7 +72,7 @@ public class Preferences implements Parcelable {
         return false;
     }
 
-    public void saveSettingToPref(int value, String parameter) {
+    public static void saveSettingToPref(int value, String parameter, Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putInt(PREF_PREFIX_KEY + parameter, value);
         prefs.apply();
@@ -78,20 +80,20 @@ public class Preferences implements Parcelable {
     }
 
 
-    public void saveUpdateTimeToPref(Calendar schedule, String type) {
+    public static void saveUpdateTimeToPref(Calendar schedule, String type, Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putLong(PREF_PREFIX_KEY + type, schedule.getTimeInMillis());
         prefs.apply();
     }
 
 
-    public void saveWordsColorToPref(int color, int id) {
+    public static void saveWordsColorToPref(int color, int id, Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putInt(PREF_PREFIX_KEY + id + "_color", color);
         prefs.apply();
     }
 
-    public int loadColorFromPref(int id) {
+    public static int loadColorFromPref(int id, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (prefs.contains(PREF_PREFIX_KEY + id + "_color"))
             return prefs.getInt(PREF_PREFIX_KEY + id + "_color", 1);
@@ -99,12 +101,12 @@ public class Preferences implements Parcelable {
 
     }
 
-    public long loadUpdateTimeFromPref(String type) {
+    public static long loadUpdateTimeFromPref(String type, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         return prefs.getLong(PREF_PREFIX_KEY + type, 0);
     }
 
-    public int loadSettingFromPref(String parameter) {
+    public static int loadSettingFromPref(String parameter, Context context) {
         int defaultValue = 0;
         if (parameter.equals("wordscount")) defaultValue = DEFAULT_COUNT;
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
@@ -113,7 +115,7 @@ public class Preferences implements Parcelable {
 
     }
 
-    public void deleteWordsColorFromPref(int id) {
+    public static void deleteWordsColorFromPref(int id, Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.remove(PREF_PREFIX_KEY + id + "_color");
         prefs.apply();

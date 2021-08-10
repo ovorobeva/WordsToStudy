@@ -10,8 +10,19 @@ import android.graphics.Color;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import java.util.Calendar;
+
+import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_MONDAY;
+import static com.github.ovorobeva.wordstostudy.Preferences.LAST;
+import static com.github.ovorobeva.wordstostudy.Preferences.NEXT;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
 import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
+import static com.github.ovorobeva.wordstostudy.Preferences.clearPrefs;
+import static com.github.ovorobeva.wordstostudy.Preferences.deleteWordsColorFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 
 /**
@@ -21,19 +32,17 @@ import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDAT
 public class AppWidget extends AppWidgetProvider {
 
     static final String TAG = "Custom logs";
-    private static Preferences preferences;
-    private final Scheduler scheduler = Scheduler.getScheduler();
-    private boolean isScheduledUpdate = false;
-    private boolean isFirstUpdate = true;
+    private static final Scheduler scheduler = Scheduler.getScheduler();
+    //private static Preferences preferences;
     //todo: to save words into preferences and compare if words exist, load them, otherwise get new
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId, Preferences preferences) {
+                                int appWidgetId) {
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        AppWidget.preferences = preferences;
-        int color = preferences.loadColorFromPref(appWidgetId);
+   //     AppWidget.preferences = preferences;
+        int color = loadColorFromPref(appWidgetId, context);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
@@ -46,19 +55,53 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager) {
+        Calendar last_update = Calendar.getInstance();
+        last_update.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
+        Calendar next_update = Calendar.getInstance();
+        next_update.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
 
-        int wordsCount = preferences.loadSettingFromPref(WORDS_COUNT);
+        int period = loadSettingFromPref(PERIOD, context);
 
-        WordsClient wordsClient = WordsClient.getWordsClient();
-        wordsClient.getWords(wordsCount, context, appWidgetManager, views);
+
+        if (period == EVERY_MONDAY) {
+            next_update.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        }
+
+        next_update.set(Calendar.MINUTE, 0);
+        next_update.set(Calendar.HOUR_OF_DAY, 0);
+
+        next_update.add(Calendar.DAY_OF_MONTH, period);
+
+        Log.d(TAG, "updateTextAppWidget: last update was on: " + last_update.getTime());
+        Log.d(TAG, "updateTextAppWidget: next update will be on: " + next_update.getTime());
+
+        if (next_update.before(Calendar.getInstance())) {
+            scheduler.cancelSchedule();
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
+
+            int wordsCount = loadSettingFromPref(WORDS_COUNT, context);
+
+            WordsClient wordsClient = WordsClient.getWordsClient();
+            wordsClient.getWords(wordsCount, context, appWidgetManager, views);
+            next_update.add(Calendar.DAY_OF_MONTH, period);
+        }
+
+        next_update.set(Calendar.MILLISECOND, 0);
+        next_update.set(Calendar.SECOND, 0);
+
+        saveUpdateTimeToPref(Calendar.getInstance(), LAST, context);
+        Log.d(TAG, "updateTextAppWidget: last update is done on: " + loadUpdateTimeFromPref(LAST, context));
+        saveUpdateTimeToPref(next_update, NEXT, context);
+        Log.d(TAG, "updateTextAppWidget: next update will be done on: " + loadUpdateTimeFromPref(NEXT, context));
+
+        scheduler.scheduleNextUpdate(context, next_update);
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
-        if (preferences == null)
+/*        if (preferences == null)
             preferences = Preferences.getPreferences(context);
 
         Log.d(TAG, "onUpdate: prefs are: " + preferences);
@@ -84,14 +127,14 @@ public class AppWidget extends AppWidgetProvider {
         //todo: to fix: time of update is not midnight
         //todo: to fix: once configure activity was not called when the second widget was added and deleted then
 
-        scheduler.scheduleNextUpdate(context, preferences);
+        scheduler.scheduleNextUpdate(context, preferences);*/
     }
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
-        for (int appWidgetId : appWidgetIds) {
-            preferences.deleteWordsColorFromPref(appWidgetId);
-        }
+            for (int appWidgetId : appWidgetIds) {
+                deleteWordsColorFromPref(appWidgetId, context);
+            }
         //Todo: to stop updating  deleted widgets, to delete all preferences and to kill the schedule
 
     }
@@ -103,11 +146,9 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-        if (preferences != null) {
-            preferences.clearPrefs();
-        }
-        isFirstUpdate = true;
-        //  scheduler.cancelSchedule();
+            clearPrefs(context);
+        if (scheduler != null)
+            scheduler.cancelSchedule();
         Log.d(TAG, "The last widget is disabled");
     }
 
@@ -116,7 +157,6 @@ public class AppWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
-            isScheduledUpdate = true;
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
             int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             //todo: why to call onUpdate if we have scheduled update? To remove code from upd

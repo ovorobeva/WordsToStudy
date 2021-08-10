@@ -14,6 +14,13 @@ import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
+import static com.github.ovorobeva.wordstostudy.Preferences.arePrefsEmpty;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveSettingToPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsColorToPref;
+
 /**
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
  */
@@ -23,7 +30,7 @@ public class ConfigureActivity extends Activity {
     static final int EVERY_THREE_DAYS = 3;
     static final int EVERY_MONDAY = 7;
 
-    private final Preferences preferences = Preferences.getPreferences(ConfigureActivity.this);
+//    private final Preferences preferences = Preferences.getPreferences(ConfigureActivity.this);
 
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
@@ -34,33 +41,48 @@ public class ConfigureActivity extends Activity {
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
-            boolean isPeriodChanged = false;
-            boolean isColorChanged = false;
-            boolean isWordCountChanged = false;
-
             final Context context = ConfigureActivity.this;
-            if (preferences.loadColorFromPref(mAppWidgetId) != color) isColorChanged = true;
-            if (preferences.loadSettingFromPref(Preferences.WORDS_COUNT) != wordCount) isWordCountChanged = true;
-            if (preferences.loadSettingFromPref(Preferences.PERIOD) != period) isColorChanged = true;
-
-            //todo: to make widget to be shown on the  main screen
-            preferences.saveSettingToPref(period, Preferences.PERIOD);
-            preferences.saveSettingToPref(wordCount, Preferences.WORDS_COUNT);
-            preferences.saveWordsColorToPref(color, mAppWidgetId);
-
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            if (isColorChanged)
-                AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId, preferences);
-
-            if (isPeriodChanged)
-            AppWidget.updateTextAppWidget(context, appWidgetManager);
-
-            if (isWordCountChanged && !isPeriodChanged)
-                Toast.makeText(ConfigureActivity.this, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
 
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
 
+            boolean isPeriodChanged = false;
+            boolean isColorChanged = false;
+            boolean isWordCountChanged = false;
+
+            Log.d(TAG, "onClick: prefs are empty: " + arePrefsEmpty(context));
+
+            if (arePrefsEmpty(context)){
+                saveSettingToPref(period, Preferences.PERIOD, context);
+                saveSettingToPref(wordCount, Preferences.WORDS_COUNT, context);
+                saveWordsColorToPref(color, mAppWidgetId, context);
+
+                AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
+                AppWidget.updateTextAppWidget(context, appWidgetManager);
+            } else {
+
+                if (loadColorFromPref(mAppWidgetId, context) != color) isColorChanged = true;
+                if (loadSettingFromPref(Preferences.WORDS_COUNT, context) != wordCount)
+                    isWordCountChanged = true;
+                if (loadSettingFromPref(Preferences.PERIOD, context) != period)
+                    isColorChanged = true;
+
+                //todo: to make widget to be shown on the  lock screen
+                saveSettingToPref(period, Preferences.PERIOD, context);
+                saveSettingToPref(wordCount, Preferences.WORDS_COUNT, context);
+                saveWordsColorToPref(color, mAppWidgetId, context);
+
+                if (isColorChanged)
+                    AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
+
+                if (isPeriodChanged)
+                    AppWidget.updateTextAppWidget(context, appWidgetManager);
+
+                if (isWordCountChanged && !isPeriodChanged)
+                    Toast.makeText(ConfigureActivity.this, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
+            }
+//may be transfer to the beginning
             setResult(RESULT_OK, resultValue);
             finish();
         }
@@ -120,8 +142,8 @@ public class ConfigureActivity extends Activity {
             }
         });
 
-        period = preferences.loadSettingFromPref(Preferences.PERIOD);
-        wordCount = preferences.loadSettingFromPref(Preferences.WORDS_COUNT);
+        period = loadSettingFromPref(Preferences.PERIOD, ConfigureActivity.this);
+        wordCount = loadSettingFromPref(Preferences.WORDS_COUNT, ConfigureActivity.this);
         if (wordCount == 0) wordCount = 3;
 
         RadioButton checkedRadioButton;
@@ -138,7 +160,7 @@ public class ConfigureActivity extends Activity {
         }
         checkedRadioButton.setChecked(true);
 
-        if (preferences.loadColorFromPref(mAppWidgetId) == Color.BLACK)
+        if (loadColorFromPref(mAppWidgetId, ConfigureActivity.this) == Color.BLACK)
             checkedRadioButton = findViewById(R.id.black_text);
         else checkedRadioButton = findViewById(R.id.white_text);
         checkedRadioButton.setChecked(true);
