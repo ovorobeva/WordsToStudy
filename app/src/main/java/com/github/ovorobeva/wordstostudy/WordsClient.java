@@ -93,7 +93,7 @@ public class WordsClient {
 
             @Override
             public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
-                Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url(), t);
+                Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url() + "\n Error is: " + t.getMessage(), t);
                 t.printStackTrace();
             }
         });

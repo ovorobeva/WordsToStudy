@@ -2,10 +2,14 @@ package com.github.ovorobeva.wordstostudy;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.widget.ExpandableListView;
 
 import java.util.Calendar;
+
+import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_DAY;
 
 public class Preferences implements Parcelable {
 
@@ -96,19 +100,20 @@ public class Preferences implements Parcelable {
     public static int loadColorFromPref(int id, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (prefs.contains(PREF_PREFIX_KEY + id + "_color"))
-            return prefs.getInt(PREF_PREFIX_KEY + id + "_color", 1);
+            return prefs.getInt(PREF_PREFIX_KEY + id + "_color", Color.WHITE);
         else return 1;
 
     }
 
     public static long loadUpdateTimeFromPref(String type, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        return prefs.getLong(PREF_PREFIX_KEY + type, 0);
+        return prefs.getLong(PREF_PREFIX_KEY + type, Calendar.getInstance().getTimeInMillis());
     }
 
     public static int loadSettingFromPref(String parameter, Context context) {
         int defaultValue = 0;
         if (parameter.equals("wordscount")) defaultValue = DEFAULT_COUNT;
+        else defaultValue = EVERY_DAY;
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         //todo: to make default not an every day. How to place null instead?
         return prefs.getInt(PREF_PREFIX_KEY + parameter, defaultValue);

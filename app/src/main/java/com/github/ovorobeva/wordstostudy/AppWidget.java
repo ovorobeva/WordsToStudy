@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import java.time.LocalDateTime;
 import java.util.Calendar;
 
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_MONDAY;
@@ -55,47 +56,46 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager) {
-        Calendar last_update = Calendar.getInstance();
-        last_update.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
+        Calendar lastUpdate = Calendar.getInstance();
+        lastUpdate.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
+        Log.d(TAG, "updateTextAppWidget: loaded last update is: " + lastUpdate.getTime());//now
 
-        Calendar next_update = Calendar.getInstance();
-        next_update.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
+        Calendar nextUpdate = Calendar.getInstance();
+        nextUpdate.setTimeInMillis(loadUpdateTimeFromPref(NEXT, context));
+        Log.d(TAG, "updateTextAppWidget: loaded next update is: " + nextUpdate.getTime());//now
 
         int period = loadSettingFromPref(PERIOD, context);
+        Log.d(TAG, "updateTextAppWidget: period is: " + period + " days");//1
 
-
-        if (period == EVERY_MONDAY) {
-            next_update.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-        }
-
-        next_update.set(Calendar.MINUTE, 0);
-        next_update.set(Calendar.HOUR_OF_DAY, 0);
-
-        next_update.add(Calendar.DAY_OF_MONTH, period);
-
-        Log.d(TAG, "updateTextAppWidget: last update was on: " + last_update.getTime());
-        Log.d(TAG, "updateTextAppWidget: next update will be on: " + next_update.getTime());
-
-        if (next_update.before(Calendar.getInstance())) {
-            scheduler.cancelSchedule();
+        if (nextUpdate.before(Calendar.getInstance()) || nextUpdate.equals(Calendar.getInstance())) { //equals = true
+            Log.d(TAG, "updateTextAppWidget: do update");
+            scheduler.cancelSchedule();//cancelled
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
 
-            int wordsCount = loadSettingFromPref(WORDS_COUNT, context);
+            int wordsCount = loadSettingFromPref(WORDS_COUNT, context); //3
 
             WordsClient wordsClient = WordsClient.getWordsClient();
-            wordsClient.getWords(wordsCount, context, appWidgetManager, views);
-            next_update.add(Calendar.DAY_OF_MONTH, period);
+            wordsClient.getWords(wordsCount, context, appWidgetManager, views); //3 new words, update is complete
         }
 
-        next_update.set(Calendar.MILLISECOND, 0);
-        next_update.set(Calendar.SECOND, 0);
+        if (period == EVERY_MONDAY) { //false
+            nextUpdate.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        }
 
-        saveUpdateTimeToPref(Calendar.getInstance(), LAST, context);
-        Log.d(TAG, "updateTextAppWidget: last update is done on: " + loadUpdateTimeFromPref(LAST, context));
-        saveUpdateTimeToPref(next_update, NEXT, context);
-        Log.d(TAG, "updateTextAppWidget: next update will be done on: " + loadUpdateTimeFromPref(NEXT, context));
+        nextUpdate.set(Calendar.MINUTE, 0);
+        nextUpdate.set(Calendar.HOUR_OF_DAY, 0);
+        nextUpdate.set(Calendar.MILLISECOND, 0);
+        nextUpdate.set(Calendar.SECOND, 0);
 
-        scheduler.scheduleNextUpdate(context, next_update);
+        nextUpdate.add(Calendar.DAY_OF_MONTH, period); //nextUpdate = today 00:00 + 1
+
+        lastUpdate = Calendar.getInstance(); //lastUpdate = now
+        saveUpdateTimeToPref(lastUpdate, LAST, context); //lu = now saved
+        saveUpdateTimeToPref(nextUpdate, NEXT, context); //nu = today midnight + 1 = 11.08 00:00
+
+        Log.d(TAG, "updateTextAppWidget: last update was on: " + lastUpdate.getTime());
+        Log.d(TAG, "updateTextAppWidget: next update will be on: " + nextUpdate.getTime());
+        scheduler.scheduleNextUpdate(context, nextUpdate); //scheduled on nu
     }
 
     @Override
@@ -128,6 +128,9 @@ public class AppWidget extends AppWidgetProvider {
         //todo: to fix: once configure activity was not called when the second widget was added and deleted then
 
         scheduler.scheduleNextUpdate(context, preferences);*/
+        for (int appWidgetId : appWidgetIds) {
+            updateAppWidget(context, appWidgetManager, appWidgetId);
+            }
     }
 
     @Override
@@ -160,7 +163,8 @@ public class AppWidget extends AppWidgetProvider {
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
             int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             //todo: why to call onUpdate if we have scheduled update? To remove code from upd
-            onUpdate(context, manager, ids);
+           // onUpdate(context, manager, ids);
+            updateTextAppWidget(context, manager);
         }
 
     }
