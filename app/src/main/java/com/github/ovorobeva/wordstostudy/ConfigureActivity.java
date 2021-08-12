@@ -15,6 +15,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
+import static com.github.ovorobeva.wordstostudy.AppWidget.updateAppWidget;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
 import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
 import static com.github.ovorobeva.wordstostudy.Preferences.arePrefsEmpty;
@@ -76,15 +77,17 @@ public class ConfigureActivity extends Activity {
                     + "\n color: " + loadColorFromPref(mAppWidgetId, context));
 
             if (isColorChanged)
-                AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
-
+                AppWidget.updateColorAppWidget(context, appWidgetManager, mAppWidgetId);
 
             if (isWordCountChanged && !isPeriodChanged)
                 Toast.makeText(ConfigureActivity.this, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
 
+
             if (isPeriodChanged)
                 AppWidget.updateTextAppWidget(context, appWidgetManager); //todo: doesn't work because of this line
 
+
+            updateAppWidget(context, appWidgetManager, mAppWidgetId);
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
             setResult(RESULT_OK, resultValue);

@@ -39,20 +39,31 @@ public class AppWidget extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
+
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
         configIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        int color = loadColorFromPref(appWidgetId, context);
-        Log.d(TAG, "updateAppWidget: color is: " + color);
+
+        PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-        PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
         String words = loadWordsFromPref(context);
         views.setTextViewText(R.id.words_edit_text, words);
-        views.setTextColor(R.id.words_edit_text, color);
         //todo: to fix back button
+        appWidgetManager.updateAppWidget(appWidgetId, views);
+    }
+
+    static void updateColorAppWidget(Context context, AppWidgetManager appWidgetManager,
+                                int appWidgetId) {
+
+        int color = loadColorFromPref(appWidgetId, context);
+        Log.d(TAG, "updateAppWidget: color is: " + color);
+
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
+
+        views.setTextColor(R.id.words_edit_text, color);
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
@@ -76,6 +87,8 @@ public class AppWidget extends AppWidgetProvider {
             int wordsCount = loadSettingFromPref(WORDS_COUNT, context); //3
 
             WordsClient wordsClient = WordsClient.getWordsClient();
+
+            views.setTextViewText(R.id.words_edit_text, "words");
             wordsClient.getWords(wordsCount, context, appWidgetManager, views); //3 new words, update is complete
             lastUpdate = Calendar.getInstance(); //lastUpdate = now
             saveUpdateTimeToPref(lastUpdate, LAST, context); //lu = now saved
@@ -105,11 +118,7 @@ public class AppWidget extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
 
-        //todo: to make reSchedule after setting new value: cancel schedule if there were any change in a period
-        //todo: to fix: there are no new words when adding a new widget
-        //todo: to fix. Widget updates when one more widget is added
         //todo: to fix: Widget updates when phone is rebooted
-        //todo: to fix: Separate settings from updating
         //todo: to fix: time of update is not midnight
         //todo: to fix: once configure activity was not called when the second widget was added and deleted then
 
@@ -147,7 +156,7 @@ public class AppWidget extends AppWidgetProvider {
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
-            int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
+          //  int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             //todo: why to call onUpdate if we have scheduled update? To remove code from upd
            // onUpdate(context, manager, ids);
             updateTextAppWidget(context, manager);
