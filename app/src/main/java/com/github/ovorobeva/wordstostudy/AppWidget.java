@@ -23,6 +23,7 @@ import static com.github.ovorobeva.wordstostudy.Preferences.deleteWordsColorFrom
 import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 
@@ -49,8 +50,9 @@ public class AppWidget extends AppWidgetProvider {
         PendingIntent pIntent = PendingIntent.getActivity(context, appWidgetId, configIntent, 0);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
-        if (color == Color.BLACK || color == Color.WHITE)
-            views.setTextColor(R.id.words_edit_text, color);
+        String words = loadWordsFromPref(context);
+        views.setTextViewText(R.id.words_edit_text, words);
+        views.setTextColor(R.id.words_edit_text, color);
         //todo: to fix back button
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }

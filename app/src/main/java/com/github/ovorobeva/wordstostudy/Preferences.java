@@ -97,12 +97,23 @@ public class Preferences implements Parcelable {
         prefs.apply();
     }
 
+    public static void saveWordsToPref(String words, Context context) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.putString(PREF_PREFIX_KEY  + "_words", words);
+        prefs.apply();
+    }
+
     public static int loadColorFromPref(int id, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (prefs.contains(PREF_PREFIX_KEY + id + "_color"))
             return prefs.getInt(PREF_PREFIX_KEY + id + "_color", Color.WHITE);
         else return 1;
 
+    }
+
+    public static String loadWordsFromPref(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+            return prefs.getString(PREF_PREFIX_KEY  + "_words", String.valueOf(R.class.getResource("appwidget_text")));
     }
 
     public static long loadUpdateTimeFromPref(String type, Context context) {

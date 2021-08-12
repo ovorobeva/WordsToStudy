@@ -17,6 +17,8 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsToPref;
+
 public class WordsClient {
     private static final Object OBJECT = new Object();
     private static final String TAG = "Custom logs";
@@ -84,6 +86,7 @@ public class WordsClient {
                     Log.d(TAG, "onResponse: words are: " + words);
 
                     views.setTextViewText(R.id.words_edit_text, words);
+                    saveWordsToPref(words.toString(), context);
 
                     final ComponentName cn = new ComponentName(context, AppWidget.class);
                     appWidgetManager.updateAppWidget(cn, views);
