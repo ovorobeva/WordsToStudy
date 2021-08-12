@@ -5,10 +5,12 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.widget.ExpandableListView;
 
 import java.util.Calendar;
 
+import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_DAY;
 
 public class Preferences implements Parcelable {
@@ -32,38 +34,18 @@ public class Preferences implements Parcelable {
     private static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
     private static final String PREF_PREFIX_KEY = "appwidget_";
     private static final int DEFAULT_COUNT = 3;
-    private static final Object OBJECT = new Object();
-    private static Preferences preferences;
     private final Context context;
 
-/*
-    private Preferences(Context context) {
-        this.context = context;
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.clear();
-        prefs.apply();
-    }*/
-    //todo: to collapse all the saves
 
     protected Preferences(Parcel in) {
         context = (Context) in.readValue(Context.class.getClassLoader());
     }
 
-/*    public static Preferences getPreferences(Context context) {
-        if (preferences != null)
-            return preferences;
-
-        synchronized (OBJECT) {
-            if (preferences == null)
-                preferences = new Preferences(context);
-            return preferences;
-        }
-    }*/
-
     public static void clearPrefs(Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.clear();
         prefs.apply();
+        Log.d(TAG, "clearPrefs: prefs are cleared");
     }
 
     public static boolean arePrefsEmpty(Context context) {
@@ -107,7 +89,7 @@ public class Preferences implements Parcelable {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (prefs.contains(PREF_PREFIX_KEY + id + "_color"))
             return prefs.getInt(PREF_PREFIX_KEY + id + "_color", Color.WHITE);
-        else return 1;
+        else return Color.WHITE;
 
     }
 

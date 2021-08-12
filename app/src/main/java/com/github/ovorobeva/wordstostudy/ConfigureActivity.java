@@ -54,21 +54,23 @@ public class ConfigureActivity extends Activity {
 
             if (!arePrefsEmpty(context)) {
                 if (loadColorFromPref(mAppWidgetId, context) != color) isColorChanged = true;
-                Log.d(TAG, "Configure Activity.onClick: isColorChanged = " + isColorChanged);
                 if (loadSettingFromPref(Preferences.WORDS_COUNT, context) != wordCount)
                     isWordCountChanged = true;
-                Log.d(TAG, "Configure Activity.onClick: isWordCountChanged = " + isWordCountChanged);
                 if (loadSettingFromPref(Preferences.PERIOD, context) != period)
                     isPeriodChanged = true;
-                Log.d(TAG, "Configure Activity.onClick: isPeriodChanged = " + isPeriodChanged);
             } else {
                 isPeriodChanged = true;
                 isColorChanged = true;
                 isWordCountChanged = true;
             }
+            Log.d(TAG, "Configure Activity.onClick: isColorChanged = " + isColorChanged);
+            Log.d(TAG, "Configure Activity.onClick: isWordCountChanged = " + isWordCountChanged);
+            Log.d(TAG, "Configure Activity.onClick: isPeriodChanged = " + isPeriodChanged);
+
             saveSettingToPref(period, Preferences.PERIOD, context);
             saveSettingToPref(wordCount, Preferences.WORDS_COUNT, context);
             saveWordsColorToPref(color, mAppWidgetId, context);
+
             Log.d(TAG, "onClick: settings saved. New values are: \n period: " + loadSettingFromPref(PERIOD, context)
                     + "\n words count: " + loadSettingFromPref(WORDS_COUNT, context)
                     + "\n color: " + loadColorFromPref(mAppWidgetId, context));
@@ -119,40 +121,18 @@ public class ConfigureActivity extends Activity {
             return;
         }
 
-        period = loadSettingFromPref(Preferences.PERIOD, ConfigureActivity.this);
-        wordCount = loadSettingFromPref(Preferences.WORDS_COUNT, ConfigureActivity.this);
 
         Spinner wordsCountText = findViewById(R.id.words_count_edit_text);
         String[] items = new String[]{"3", "5", "10"};
 
-        switch (wordCount) {
-            case 5:
-                wordsCountText.setSelection(1);
-                break;
-            case 10:
-                wordsCountText.setSelection(2);
-                break;
-            default:
-                wordsCountText.setSelection(0);
-        }
+        wordsCountText.setSelection(0);
+
 
         RadioButton checkedRadioButton;
-        switch (period) {
-            case EVERY_MONDAY:
-                checkedRadioButton = findViewById(R.id.every_monday);
-                break;
-            case EVERY_THREE_DAYS:
-                checkedRadioButton = findViewById(R.id.every_three_days);
-                break;
-            default:
-                checkedRadioButton = findViewById(R.id.every_day);
-
-        }
+        checkedRadioButton = findViewById(R.id.every_day);
         checkedRadioButton.setChecked(true);
 
-        if (loadColorFromPref(mAppWidgetId, ConfigureActivity.this) == Color.BLACK)
-            checkedRadioButton = findViewById(R.id.black_text);
-        else checkedRadioButton = findViewById(R.id.white_text);
+        checkedRadioButton = findViewById(R.id.black_text);
         checkedRadioButton.setChecked(true);
 
 
@@ -186,7 +166,42 @@ public class ConfigureActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
-        //todo: to restore the previous state (to watch the lesson again)
+        color = loadColorFromPref(mAppWidgetId, ConfigureActivity.this);
+        period = loadSettingFromPref(Preferences.PERIOD, ConfigureActivity.this);
+        wordCount = loadSettingFromPref(Preferences.WORDS_COUNT, ConfigureActivity.this);
+
+        Spinner wordsCountText = findViewById(R.id.words_count_edit_text);
+
+        switch (wordCount) {
+            case 5:
+                wordsCountText.setSelection(1);
+                break;
+            case 10:
+                wordsCountText.setSelection(2);
+                break;
+            default:
+                wordsCountText.setSelection(0);
+        }
+
+        RadioButton checkedRadioButton;
+        switch (period) {
+            case EVERY_MONDAY:
+                checkedRadioButton = findViewById(R.id.every_monday);
+                break;
+            case EVERY_THREE_DAYS:
+                checkedRadioButton = findViewById(R.id.every_three_days);
+                break;
+            default:
+                checkedRadioButton = findViewById(R.id.every_day);
+
+        }
+        checkedRadioButton.setChecked(true);
+
+        if (loadColorFromPref(mAppWidgetId, ConfigureActivity.this) == Color.BLACK)
+            checkedRadioButton = findViewById(R.id.black_text);
+        else checkedRadioButton = findViewById(R.id.white_text);
+        checkedRadioButton.setChecked(true);
+
         Log.d(AppWidget.class.getCanonicalName() + ".onResume", "Config activity for the widget ID " + mAppWidgetId + " is opened");
 
     }
