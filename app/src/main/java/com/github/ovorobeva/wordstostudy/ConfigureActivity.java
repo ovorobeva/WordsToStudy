@@ -16,6 +16,9 @@ import android.widget.Toast;
 
 import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
 import static com.github.ovorobeva.wordstostudy.AppWidget.updateAppWidget;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_PERIOD_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_WORD_COUNT_CHANGED;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
 import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
 import static com.github.ovorobeva.wordstostudy.Preferences.arePrefsEmpty;
@@ -75,17 +78,12 @@ public class ConfigureActivity extends Activity {
             Log.d(TAG, "onClick: settings saved. New values are: \n period: " + loadSettingFromPref(PERIOD, context)
                     + "\n words count: " + loadSettingFromPref(WORDS_COUNT, context)
                     + "\n color: " + loadColorFromPref(mAppWidgetId, context));
-
-            if (isColorChanged)
-                AppWidget.updateColorAppWidget(context, appWidgetManager, mAppWidgetId);
-
-            if (isWordCountChanged && !isPeriodChanged)
-                Toast.makeText(ConfigureActivity.this, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
-
-
-            if (isPeriodChanged)
-                AppWidget.updateTextAppWidget(context, appWidgetManager); //todo: doesn't work because of this line
-
+            int changed = isColorChanged ? 1 : 0;
+            saveSettingToPref(changed, IS_COLOR_CHANGED, context);
+            changed = isWordCountChanged ? 1 : 0;
+            saveSettingToPref(changed, IS_WORD_COUNT_CHANGED, context);
+            changed = isPeriodChanged ? 1 : 0;
+            saveSettingToPref(changed, IS_PERIOD_CHANGED, context);
 
             updateAppWidget(context, appWidgetManager, mAppWidgetId);
             Intent resultValue = new Intent();

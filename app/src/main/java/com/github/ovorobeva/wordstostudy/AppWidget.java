@@ -7,13 +7,18 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_MONDAY;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_PERIOD_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_WORD_COUNT_CHANGED;
 import static com.github.ovorobeva.wordstostudy.Preferences.LAST;
 import static com.github.ovorobeva.wordstostudy.Preferences.NEXT;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
@@ -24,6 +29,7 @@ import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveSettingToPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 
@@ -51,6 +57,25 @@ public class AppWidget extends AppWidgetProvider {
 
         String words = loadWordsFromPref(context);
         views.setTextViewText(R.id.words_edit_text, words);
+
+            int isColorChanged = loadSettingFromPref(IS_COLOR_CHANGED, context);
+            int isWordCountChanged = loadSettingFromPref(IS_WORD_COUNT_CHANGED, context);
+            int isPeriodChanged = loadSettingFromPref(IS_PERIOD_CHANGED, context);
+            Log.d(TAG, "updateAppWidget: isColorChanged = " + isColorChanged);
+            Log.d(TAG, "updateAppWidget: isWordCountChanged = " + isWordCountChanged);
+            Log.d(TAG, "updateAppWidget: isPeriodChanged = " + isPeriodChanged);
+
+            if (isColorChanged == 1) {
+                int color = loadColorFromPref(appWidgetId, context);
+                views.setTextColor(R.id.words_edit_text, color);
+            }
+
+            if (isWordCountChanged == 1 && isPeriodChanged == 0)
+                Toast.makeText(context, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
+
+            if (isPeriodChanged == 1)
+                AppWidget.updateTextAppWidget(context, appWidgetManager); //todo: doesn't work because of this line
+
         //todo: to fix back button
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }

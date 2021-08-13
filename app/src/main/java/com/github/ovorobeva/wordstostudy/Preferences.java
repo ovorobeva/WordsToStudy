@@ -19,6 +19,10 @@ public class Preferences implements Parcelable {
     public static final String PERIOD = "period";
     public static final String NEXT = "next_update";
     public static final String LAST = "last_update";
+    public static final String IS_COLOR_CHANGED = "isColorChanged";
+    public static final String IS_WORD_COUNT_CHANGED = "isWordCountChanged";
+    public static final String IS_PERIOD_CHANGED = "isPeriodChanged";
+
     @SuppressWarnings("unused")
     public static final Parcelable.Creator<Preferences> CREATOR = new Parcelable.Creator<Preferences>() {
         @Override
