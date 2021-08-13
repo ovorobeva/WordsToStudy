@@ -77,20 +77,10 @@ public class AppWidget extends AppWidgetProvider {
                 AppWidget.updateTextAppWidget(context, appWidgetManager); //todo: doesn't work because of this line
 
         //todo: to fix back button
+        //todo: to fix first update before click
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
-    static void updateColorAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
-
-        int color = loadColorFromPref(appWidgetId, context);
-        Log.d(TAG, "updateAppWidget: color is: " + color);
-
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
-
-        views.setTextColor(R.id.words_edit_text, color);
-        appWidgetManager.updateAppWidget(appWidgetId, views);
-    }
 
     static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager) {
         Calendar lastUpdate = Calendar.getInstance();

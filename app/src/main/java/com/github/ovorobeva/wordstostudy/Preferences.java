@@ -22,6 +22,7 @@ public class Preferences implements Parcelable {
     public static final String IS_COLOR_CHANGED = "isColorChanged";
     public static final String IS_WORD_COUNT_CHANGED = "isWordCountChanged";
     public static final String IS_PERIOD_CHANGED = "isPeriodChanged";
+    public static final String IS_CONFIGURATION_SAVED = "isConfiguratiosSaved";
 
     @SuppressWarnings("unused")
     public static final Parcelable.Creator<Preferences> CREATOR = new Parcelable.Creator<Preferences>() {
