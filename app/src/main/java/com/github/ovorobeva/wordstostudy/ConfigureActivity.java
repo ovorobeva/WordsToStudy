@@ -211,10 +211,10 @@ public class ConfigureActivity extends Activity {
         RadioButton checkedRadioButton = (RadioButton) view;
         switch (checkedRadioButton.getId()) {
             case R.id.white_text:
-                color = Color.WHITE;
+                color = ConfigureActivity.this.getResources().getColor(R.color.white);
                 break;
             case R.id.black_text:
-                color = Color.BLACK;
+                color = ConfigureActivity.this.getResources().getColor(R.color.black);
         }
     }
 

@@ -56,6 +56,9 @@ public class AppWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
         String words = loadWordsFromPref(context);
+        if (words == null)
+            words = context.getResources().getString(R.string.appwidget_text);
+
         views.setTextViewText(R.id.words_edit_text, words);
 
             int isColorChanged = loadSettingFromPref(IS_COLOR_CHANGED, context);
@@ -112,7 +115,7 @@ public class AppWidget extends AppWidgetProvider {
 
         nextUpdate = lastUpdate;
 
-        if (period == EVERY_MONDAY) { //false
+        if (period == EVERY_MONDAY) {
             nextUpdate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
         }
 
@@ -121,12 +124,12 @@ public class AppWidget extends AppWidgetProvider {
         nextUpdate.set(Calendar.MILLISECOND, 0);
         nextUpdate.set(Calendar.SECOND, 0);
 
-        nextUpdate.add(Calendar.DAY_OF_MONTH, period); //nextUpdate = today 00:00 + 1
+        nextUpdate.add(Calendar.DAY_OF_MONTH, period);
 
-        saveUpdateTimeToPref(nextUpdate, NEXT, context); //nu = today midnight + 1 = 11.08 00:00
+        saveUpdateTimeToPref(nextUpdate, NEXT, context);
 
         Log.d(TAG, "updateTextAppWidget: next update will be on: " + nextUpdate.getTime());
-        scheduler.scheduleNextUpdate(context, nextUpdate); //scheduled on nu
+        scheduler.scheduleNextUpdate(context, nextUpdate);
     }
 
     @Override

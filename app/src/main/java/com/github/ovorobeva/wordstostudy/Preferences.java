@@ -2,6 +2,7 @@ package com.github.ovorobeva.wordstostudy;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -13,7 +14,7 @@ import java.util.Calendar;
 import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_DAY;
 
-public class Preferences implements Parcelable {
+public class Preferences implements Parcelable{
 
     public static final String WORDS_COUNT = "wordscount";
     public static final String PERIOD = "period";
@@ -22,7 +23,6 @@ public class Preferences implements Parcelable {
     public static final String IS_COLOR_CHANGED = "isColorChanged";
     public static final String IS_WORD_COUNT_CHANGED = "isWordCountChanged";
     public static final String IS_PERIOD_CHANGED = "isPeriodChanged";
-    public static final String IS_CONFIGURATION_SAVED = "isConfiguratiosSaved";
 
     @SuppressWarnings("unused")
     public static final Parcelable.Creator<Preferences> CREATOR = new Parcelable.Creator<Preferences>() {
@@ -49,6 +49,7 @@ public class Preferences implements Parcelable {
     public static void clearPrefs(Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.clear();
+        saveWordsToPref(context.getResources().getString(R.string.appwidget_text), context);
         prefs.apply();
         Log.d(TAG, "clearPrefs: prefs are cleared");
     }
