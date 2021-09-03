@@ -94,8 +94,8 @@ public class Preferences implements Parcelable{
     public static int loadColorFromPref(int id, Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
         if (prefs.contains(PREF_PREFIX_KEY + id + "_color"))
-            return prefs.getInt(PREF_PREFIX_KEY + id + "_color", Color.WHITE);
-        else return Color.WHITE;
+            return prefs.getInt(PREF_PREFIX_KEY + id + "_color", context.getResources().getColor(R.color.white));
+        else return context.getResources().getColor(R.color.white);
 
     }
 
@@ -110,11 +110,10 @@ public class Preferences implements Parcelable{
     }
 
     public static int loadSettingFromPref(String parameter, Context context) {
-        int defaultValue = 0;
-        if (parameter.equals("wordscount")) defaultValue = DEFAULT_COUNT;
+        int defaultValue;
+        if (parameter.equals(WORDS_COUNT)) defaultValue = DEFAULT_COUNT;
         else defaultValue = EVERY_DAY;
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        //todo: to make default not an every day. How to place null instead?
         return prefs.getInt(PREF_PREFIX_KEY + parameter, defaultValue);
 
     }

@@ -27,6 +27,7 @@ import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsToPref;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 
 /**
@@ -38,10 +39,12 @@ public class AppWidget extends AppWidgetProvider {
     static final String TAG = "Custom logs";
     private static final Scheduler scheduler = Scheduler.getScheduler();
     public static boolean isTextUpdate;
-    //todo: to save words into preferences and compare if words exist, load them, otherwise get new
+    //todo: to fix colors when first changed
+    //todo: to fix first words update
+    //todo: to fix some words like que by its frequency in the service
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId, boolean isTextUpdate) {
+                                int appWidgetId) {
 
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
@@ -71,22 +74,49 @@ public class AppWidget extends AppWidgetProvider {
                 views.setTextColor(R.id.words_edit_text, color);
             }
 
-            if (isWordCountChanged == 1 && isPeriodChanged == 0)
-                Toast.makeText(context, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
+            if (isWordCountChanged == 1 && isPeriodChanged == 0) {
+                updateTextAppWidget(context, appWidgetManager, views, true);
+                //       Toast.makeText(context, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
+
+            }
 
             if (isPeriodChanged == 1)
-                updateTextAppWidget(context, appWidgetManager, views);
+                updateTextAppWidget(context, appWidgetManager, views, false);
         } else {
             isTextUpdate = false;
-            updateTextAppWidget(context, appWidgetManager, views);
+            updateTextAppWidget(context, appWidgetManager, views, false);
         }
-        //todo: to fix back button
-        //todo: to fix first update before click
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
 
-    static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager, RemoteViews views) {
+    static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager, RemoteViews views, boolean isAdditional) {
+
+        WordsClient wordsClient = WordsClient.getWordsClient();
+        if (isAdditional) {
+            int wordsCount = (loadWordsFromPref(context).length() - loadWordsFromPref(context).replace(" - ", "").length()) / 3;
+            if (wordsCount < loadSettingFromPref(WORDS_COUNT, context)) {
+                wordsCount = loadSettingFromPref(WORDS_COUNT, context) - wordsCount;
+                wordsClient.getWords(wordsCount, context, appWidgetManager, views, isAdditional);
+            } else {
+
+                StringBuilder currentWords = new StringBuilder();
+                currentWords.append(loadWordsFromPref(context));
+
+                StringBuilder words = new StringBuilder();
+                int count = 0;
+                for (int i = 0; count < loadSettingFromPref(WORDS_COUNT, context); i++){
+                    if (currentWords.charAt(i) == '\n') count++;
+                    words.append(currentWords.charAt(i));
+                }
+
+                Log.d(TAG, "onResponse: words are: " + words);
+
+                views.setTextViewText(R.id.words_edit_text, words);
+                saveWordsToPref(words.toString(), context);
+            }
+        } else {
+
         Calendar lastUpdate = Calendar.getInstance();
         lastUpdate.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
         Log.d(TAG, "updateTextAppWidget: loaded last update is: " + lastUpdate.getTime());//now
@@ -104,10 +134,8 @@ public class AppWidget extends AppWidgetProvider {
 
             int wordsCount = loadSettingFromPref(WORDS_COUNT, context); //3
 
-            WordsClient wordsClient = WordsClient.getWordsClient();
-
             views.setTextViewText(R.id.words_edit_text, "words");
-            wordsClient.getWords(wordsCount, context, appWidgetManager, views); //3 new words, update is complete
+            wordsClient.getWords(wordsCount, context, appWidgetManager, views, false); //3 new words, update is complete
             lastUpdate = Calendar.getInstance(); //lastUpdate = now
             saveUpdateTimeToPref(lastUpdate, LAST, context); //lu = now saved
         }
@@ -130,18 +158,16 @@ public class AppWidget extends AppWidgetProvider {
 
         Log.d(TAG, "updateTextAppWidget: next update will be on: " + nextUpdate.getTime());
         scheduler.scheduleNextUpdate(context, nextUpdate);
-    }
+    }}
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
 
-        //todo: to fix: Widget updates when phone is rebooted
-        //todo: to fix: time of update is not midnight
-        //todo: to fix: once configure activity was not called when the second widget was added and deleted then
+        //todo: to fix: Widget doesn't update when phone is rebooted
 
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, isTextUpdate);
+            updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
 
@@ -151,7 +177,6 @@ public class AppWidget extends AppWidgetProvider {
             deleteWordsColorFromPref(appWidgetId, context);
             Log.d(TAG, "onDeleted: widget " + appWidgetId + " is deleted");
         }
-        //Todo: to stop updating  deleted widgets, to delete all preferences and to kill the schedule
 
     }
 
@@ -174,8 +199,7 @@ public class AppWidget extends AppWidgetProvider {
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
-              int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
-            //todo: why to call onUpdate if we have scheduled update? To remove code from upd
+            int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             isTextUpdate = true;
             onUpdate(context, manager, ids);
         }

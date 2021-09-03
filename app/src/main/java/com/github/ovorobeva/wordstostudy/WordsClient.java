@@ -19,6 +19,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsToPref;
 
 public class WordsClient {
@@ -43,7 +44,7 @@ public class WordsClient {
     }
 
 
-    public void getWords(int wordsCount, Context context, AppWidgetManager appWidgetManager, RemoteViews views) {
+    public void getWords(int wordsCount, Context context, AppWidgetManager appWidgetManager, RemoteViews views, boolean isAdditional) {
         final VocabularyWordsAPI wordsApi;
 
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
@@ -68,7 +69,7 @@ public class WordsClient {
                     if (response.isSuccessful()) {
                         responseBody.addAll(response.body());
                         Log.d(TAG, "onResponse: Response by the url " + response.raw().request().url() + " is received.\nResponse to process is: " + responseBody);
-                        setWords(responseBody, views, context);
+                        setWords(responseBody, views, context, isAdditional);
 
                         final ComponentName cn = new ComponentName(context, AppWidget.class);
                         appWidgetManager.updateAppWidget(cn, views);
@@ -80,16 +81,16 @@ public class WordsClient {
                 public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
                     Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url() + "\n Error is: " + t.getMessage(), t);
                     t.printStackTrace();
-                    getWordsReserve(wordsCount, context, appWidgetManager, views);
+                    getWordsReserve(wordsCount, context, appWidgetManager, views, isAdditional);
                 }
             }));
         } catch (Exception e) {
             Log.d(TAG, "getWords: exception: " + e);
-            getWordsReserve(wordsCount, context, appWidgetManager, views);
+            getWordsReserve(wordsCount, context, appWidgetManager, views, isAdditional);
         }
     }
 
-    public void getWordsReserve(int wordsCount, Context context, AppWidgetManager appWidgetManager, RemoteViews views) {
+    public void getWordsReserve(int wordsCount, Context context, AppWidgetManager appWidgetManager, RemoteViews views, boolean isAdditional) {
         List<GeneratedWords> responseBody = new ArrayList<>();
 
         final WordsApi wordsApi;
@@ -120,7 +121,7 @@ public class WordsClient {
                         randomWords.add(responseBody.get(id));
                     }
                     Log.d(TAG, "onResponse: random words are: " + randomWords);
-                    setWords(randomWords, views, context);
+                    setWords(randomWords, views, context, isAdditional);
 
                     final ComponentName cn = new ComponentName(context, AppWidget.class);
                     appWidgetManager.updateAppWidget(cn, views);
@@ -136,7 +137,7 @@ public class WordsClient {
         });
     }
 
-    private void setWords(List<GeneratedWords> randomWords, RemoteViews views, Context context){
+    private void setWords(List<GeneratedWords> randomWords, RemoteViews views, Context context, boolean isAdditional){
         List<String> processedResult = new LinkedList<>();
 
         for (GeneratedWords generatedWord : randomWords) {
@@ -144,6 +145,7 @@ public class WordsClient {
         }
 
         StringBuilder words = new StringBuilder();
+        if (isAdditional) words.append(loadWordsFromPref(context));
 
         for (String s : processedResult) {
             words.append(s).append("\n");

@@ -86,7 +86,7 @@ public class ConfigureActivity extends Activity {
             saveSettingToPref(changed, IS_PERIOD_CHANGED, context);
 
             isTextUpdate = false;
-            updateAppWidget(context, appWidgetManager, mAppWidgetId, isTextUpdate);
+            updateAppWidget(context, appWidgetManager, mAppWidgetId);
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
             setResult(RESULT_OK, resultValue);
@@ -160,9 +160,6 @@ public class ConfigureActivity extends Activity {
 
             }
         });
-
-
-//todo: to set other options as default
     }
 
     @Override
@@ -199,7 +196,7 @@ public class ConfigureActivity extends Activity {
         }
         checkedRadioButton.setChecked(true);
 
-        if (loadColorFromPref(mAppWidgetId, ConfigureActivity.this) == Color.BLACK)
+        if (loadColorFromPref(mAppWidgetId, ConfigureActivity.this) == ConfigureActivity.this.getResources().getColor(R.color.black))
             checkedRadioButton = findViewById(R.id.black_text);
         else checkedRadioButton = findViewById(R.id.white_text);
         checkedRadioButton.setChecked(true);
