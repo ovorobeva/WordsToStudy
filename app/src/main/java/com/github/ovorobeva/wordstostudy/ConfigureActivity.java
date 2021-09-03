@@ -12,9 +12,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.RadioButton;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
+import static com.github.ovorobeva.wordstostudy.AppWidget.isTextUpdate;
 import static com.github.ovorobeva.wordstostudy.AppWidget.updateAppWidget;
 import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
 import static com.github.ovorobeva.wordstostudy.Preferences.IS_PERIOD_CHANGED;
@@ -85,7 +85,8 @@ public class ConfigureActivity extends Activity {
             changed = isPeriodChanged ? 1 : 0;
             saveSettingToPref(changed, IS_PERIOD_CHANGED, context);
 
-            updateAppWidget(context, appWidgetManager, mAppWidgetId);
+            isTextUpdate = false;
+            updateAppWidget(context, appWidgetManager, mAppWidgetId, isTextUpdate);
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
             setResult(RESULT_OK, resultValue);

@@ -6,13 +6,10 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
-import java.time.LocalDateTime;
 import java.util.Calendar;
 
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_MONDAY;
@@ -29,7 +26,6 @@ import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
-import static com.github.ovorobeva.wordstostudy.Preferences.saveSettingToPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 
@@ -41,10 +37,11 @@ public class AppWidget extends AppWidgetProvider {
 
     static final String TAG = "Custom logs";
     private static final Scheduler scheduler = Scheduler.getScheduler();
+    public static boolean isTextUpdate;
     //todo: to save words into preferences and compare if words exist, load them, otherwise get new
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
+                                int appWidgetId, boolean isTextUpdate) {
 
         Intent configIntent = new Intent(context, ConfigureActivity.class);
         configIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE);
@@ -55,11 +52,12 @@ public class AppWidget extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
-        String words = loadWordsFromPref(context);
-        if (words == null)
-            words = context.getResources().getString(R.string.appwidget_text);
+        if (!isTextUpdate) {
+            String words = loadWordsFromPref(context);
+            if (words == null)
+                words = context.getResources().getString(R.string.appwidget_text);
 
-        views.setTextViewText(R.id.words_edit_text, words);
+            views.setTextViewText(R.id.words_edit_text, words);
 
             int isColorChanged = loadSettingFromPref(IS_COLOR_CHANGED, context);
             int isWordCountChanged = loadSettingFromPref(IS_WORD_COUNT_CHANGED, context);
@@ -77,15 +75,18 @@ public class AppWidget extends AppWidgetProvider {
                 Toast.makeText(context, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
 
             if (isPeriodChanged == 1)
-                AppWidget.updateTextAppWidget(context, appWidgetManager); //todo: doesn't work because of this line
-
+                updateTextAppWidget(context, appWidgetManager, views);
+        } else {
+            isTextUpdate = false;
+            updateTextAppWidget(context, appWidgetManager, views);
+        }
         //todo: to fix back button
         //todo: to fix first update before click
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
 
-    static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager) {
+    static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager, RemoteViews views) {
         Calendar lastUpdate = Calendar.getInstance();
         lastUpdate.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
         Log.d(TAG, "updateTextAppWidget: loaded last update is: " + lastUpdate.getTime());//now
@@ -100,7 +101,6 @@ public class AppWidget extends AppWidgetProvider {
         if (nextUpdate.before(Calendar.getInstance()) || nextUpdate.equals(Calendar.getInstance())) { //equals = true
             Log.d(TAG, "updateTextAppWidget: do update");
             scheduler.cancelSchedule();//cancelled
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
 
             int wordsCount = loadSettingFromPref(WORDS_COUNT, context); //3
 
@@ -141,16 +141,16 @@ public class AppWidget extends AppWidgetProvider {
         //todo: to fix: once configure activity was not called when the second widget was added and deleted then
 
         for (int appWidgetId : appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId);
-            }
+            updateAppWidget(context, appWidgetManager, appWidgetId, isTextUpdate);
+        }
     }
 
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
-            for (int appWidgetId : appWidgetIds) {
-                deleteWordsColorFromPref(appWidgetId, context);
-                Log.d(TAG, "onDeleted: widget " + appWidgetId + " is deleted");
-            }
+        for (int appWidgetId : appWidgetIds) {
+            deleteWordsColorFromPref(appWidgetId, context);
+            Log.d(TAG, "onDeleted: widget " + appWidgetId + " is deleted");
+        }
         //Todo: to stop updating  deleted widgets, to delete all preferences and to kill the schedule
 
     }
@@ -162,7 +162,7 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onDisabled(Context context) {
-            clearPrefs(context);
+        clearPrefs(context);
         if (scheduler != null)
             scheduler.cancelSchedule();
         Log.d(TAG, "The last widget is disabled");
@@ -174,10 +174,10 @@ public class AppWidget extends AppWidgetProvider {
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
-          //  int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
+              int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             //todo: why to call onUpdate if we have scheduled update? To remove code from upd
-           // onUpdate(context, manager, ids);
-            updateTextAppWidget(context, manager);
+            isTextUpdate = true;
+            onUpdate(context, manager, ids);
         }
 
     }
