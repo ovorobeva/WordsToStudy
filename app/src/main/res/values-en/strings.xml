@@ -1,6 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WordsToStudy</string>
-    <string name="appwidget_text" translatable="false">hello - привет\nhome - дом\npeace - мир</string>
     <string name="configure">Settings</string>
     <string name="add_widget">Apply</string>
     <string name="updPeriodLbl">Choose update period</string>

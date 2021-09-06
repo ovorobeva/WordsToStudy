@@ -4,53 +4,93 @@ import android.app.Activity;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.RadioButton;
-import android.widget.TextView;
+import android.widget.Spinner;
+
+import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
+import static com.github.ovorobeva.wordstostudy.AppWidget.isAdditional;
+import static com.github.ovorobeva.wordstostudy.AppWidget.isTextUpdate;
+import static com.github.ovorobeva.wordstostudy.AppWidget.updateAppWidget;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_PERIOD_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.IS_WORD_COUNT_CHANGED;
+import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
+import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
+import static com.github.ovorobeva.wordstostudy.Preferences.arePrefsEmpty;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveSettingToPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsColorToPref;
 
 /**
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
  */
 public class ConfigureActivity extends Activity {
-    //todo: to get rid of excess comments
-    //todo: to make logger
-    //path to the prefs on the device
-    static final String PREFS_NAME = "com.github.ovorobeva.wordstostudy.NewAppWidget";
-    //prefix to show with the setting name to separate settings for more than one widgets
-    // /data/user/0/com.github.ovorobeva.wordstostudy/shared_prefs/com.github.ovorobeva.wordstostudy.NewAppWidget.xml
-    static final String PREF_PREFIX_KEY = "appwidget_";
 
-    private static final int EVERY_DAY = 5000;
-    private static final int EVERY_THREE_DAYS = 10000;
-    private static final int EVERY_MONDAY = 15000;
-    private static int count = 3;
+    static final int EVERY_DAY = 1;
+    static final int EVERY_THREE_DAYS = 3;
+    static final int EVERY_MONDAY = 7;
 
-    int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    //todo: add other options to save in configurations (period, color, size, languages etc.)
+//    private final Preferences preferences = Preferences.getPreferences(ConfigureActivity.this);
+
+    private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
     private int period;
+    private int color;
+    private int wordCount;
 
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
             final Context context = ConfigureActivity.this;
-            TextView appwidget_text = findViewById(R.id.appwidget_text);
-            count = Integer.parseInt(appwidget_text.getText().toString());
-
-            // When the button is clicked, store the string locally
-            //todo: to rewrite getWords() to throw the API-request and remove it into update
-            //savePeriodToPref(context, mAppWidgetId, period); The example how to use widget id in prefs
-            savePeriodToPref(context, period);
-            saveWordsCountToPref(context, count);
-
-            // It is the responsibility of the configuration activity to update the app widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            AppWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
 
-            // Make sure we pass back the original appWidgetId
+            boolean isPeriodChanged = false;
+            boolean isColorChanged = false;
+            boolean isWordCountChanged = false;
+
+            Log.d(TAG, "onClick: prefs are empty: " + arePrefsEmpty(context));
+
+            if (!arePrefsEmpty(context)) {
+                if (loadColorFromPref(mAppWidgetId, context) != color) isColorChanged = true;
+                if (loadSettingFromPref(Preferences.WORDS_COUNT, context) != wordCount)
+                    isWordCountChanged = true;
+                if (loadSettingFromPref(Preferences.PERIOD, context) != period)
+                    isPeriodChanged = true;
+            } else {
+                isPeriodChanged = true;
+                isColorChanged = true;
+                isWordCountChanged = true;
+            }
+            Log.d(TAG, "Configure Activity.onClick: isColorChanged = " + isColorChanged);
+            Log.d(TAG, "Configure Activity.onClick: isWordCountChanged = " + isWordCountChanged);
+            Log.d(TAG, "Configure Activity.onClick: isPeriodChanged = " + isPeriodChanged);
+
+            saveSettingToPref(period, Preferences.PERIOD, context);
+            saveSettingToPref(wordCount, Preferences.WORDS_COUNT, context);
+            saveWordsColorToPref(color, mAppWidgetId, context);
+
+            Log.d(TAG, "onClick: settings saved. New values are: \n period: " + loadSettingFromPref(PERIOD, context)
+                    + "\n words count: " + loadSettingFromPref(WORDS_COUNT, context)
+                    + "\n color: " + loadColorFromPref(mAppWidgetId, context));
+            int changed = isColorChanged ? 1 : 0;
+            saveSettingToPref(changed, IS_COLOR_CHANGED, context);
+            changed = isWordCountChanged ? 1 : 0;
+            saveSettingToPref(changed, IS_WORD_COUNT_CHANGED, context);
+            changed = isPeriodChanged ? 1 : 0;
+            saveSettingToPref(changed, IS_PERIOD_CHANGED, context);
+            isTextUpdate = isWordCountChanged || isPeriodChanged;
+            isAdditional = isWordCountChanged && !isPeriodChanged;
+
+            Log.d(TAG, "onClick: isTextUpdate required = " + isTextUpdate);
+
+            updateAppWidget(context, appWidgetManager, mAppWidgetId);
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
             setResult(RESULT_OK, resultValue);
@@ -58,92 +98,129 @@ public class ConfigureActivity extends Activity {
         }
     };
 
+
     public ConfigureActivity() {
         super();
     }
 
-    // Write the prefix to the SharedPreferences object for this widget
-    //The example how to make prefs for the definite widget (using widgetID)
-/*    static void savePeriodToPref(Context context, int appWidgetId, int period) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY + appWidgetId, period);
-        prefs.apply();
-    }*/
-
-    static void savePeriodToPref(Context context, int period) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY, period);
-        prefs.apply();
-    }
-    static void saveWordsCountToPref(Context context, int count) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.putInt(PREF_PREFIX_KEY, count);
-        prefs.apply();
-    }
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    //todo: to load other preferences like title value
-    static int loadPeriodFromPref(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY, EVERY_DAY);
-    }
-
-    //Here is the example how to use prefs according to the definite widget id
-  /*  static int loadPeriodFromPref(Context context, int mAppWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        return prefs.getInt(PREF_PREFIX_KEY + mAppWidgetId, EVERY_DAY);
-    }*/
-    static int loadWordsCountFromPref(Context context) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
-        //todo: to make default not an every day. How to place null instead?
-        return prefs.getInt(PREF_PREFIX_KEY, count);
-    }
-
-    //todo: to delete other preferences like title value
-    static void deletePeriodFromPref(Context context, int appWidgetId) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
-        prefs.remove(PREF_PREFIX_KEY + appWidgetId);
-        prefs.apply();
-    }
 
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        // Set the result to CANCELED.  This will cause the widget host to cancel
-        // out of the widget placement if the user presses the back button.
         setResult(RESULT_CANCELED);
 
         setContentView(R.layout.widget_configure);
-
         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
 
-        // Find the widget id from the intent.
+
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
+
         if (extras != null) {
             mAppWidgetId = extras.getInt(
                     AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
         }
 
-        // If this activity was started with an intent without an app widget ID, finish with an error.
         if (mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             finish();
             return;
         }
-//todo: to set other options as default
-        period = loadPeriodFromPref(ConfigureActivity.this);
+
+
+        Spinner wordsCountText = findViewById(R.id.words_count_edit_text);
+        String[] items = new String[]{"3", "5", "10"};
+
+        wordsCountText.setSelection(0);
+
+
+        RadioButton checkedRadioButton;
+        checkedRadioButton = findViewById(R.id.every_day);
+        checkedRadioButton.setChecked(true);
+
+        checkedRadioButton = findViewById(R.id.black_text);
+        checkedRadioButton.setChecked(true);
+
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        wordsCountText.setAdapter(adapter);
+        wordsCountText.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 1:
+                        wordCount = 5;
+                        break;
+                    case 2:
+                        wordCount = 10;
+                        break;
+                    default:
+                        wordCount = 3;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
+
     @Override
     public void onResume() {
         super.onResume();
-        //todo: to restore the previous state (to watch the lesson again)
+        color = loadColorFromPref(mAppWidgetId, ConfigureActivity.this);
+        period = loadSettingFromPref(Preferences.PERIOD, ConfigureActivity.this);
+        wordCount = loadSettingFromPref(Preferences.WORDS_COUNT, ConfigureActivity.this);
+
+        Spinner wordsCountText = findViewById(R.id.words_count_edit_text);
+
+        switch (wordCount) {
+            case 5:
+                wordsCountText.setSelection(1);
+                break;
+            case 10:
+                wordsCountText.setSelection(2);
+                break;
+            default:
+                wordsCountText.setSelection(0);
+        }
+
+        RadioButton checkedRadioButton;
+        switch (period) {
+            case EVERY_MONDAY:
+                checkedRadioButton = findViewById(R.id.every_monday);
+                break;
+            case EVERY_THREE_DAYS:
+                checkedRadioButton = findViewById(R.id.every_three_days);
+                break;
+            default:
+                checkedRadioButton = findViewById(R.id.every_day);
+
+        }
+        checkedRadioButton.setChecked(true);
+
+        if (loadColorFromPref(mAppWidgetId, ConfigureActivity.this) == ConfigureActivity.this.getResources().getColor(R.color.black))
+            checkedRadioButton = findViewById(R.id.black_text);
+        else checkedRadioButton = findViewById(R.id.white_text);
+        checkedRadioButton.setChecked(true);
+
         Log.d(AppWidget.class.getCanonicalName() + ".onResume", "Config activity for the widget ID " + mAppWidgetId + " is opened");
 
     }
 
-    public void radioButtonClickListener(View view) {
+    public void radioButtonColorClickListener(View view) {
+        RadioButton checkedRadioButton = (RadioButton) view;
+        switch (checkedRadioButton.getId()) {
+            case R.id.white_text:
+                color = ConfigureActivity.this.getResources().getColor(R.color.white);
+                break;
+            case R.id.black_text:
+                color = ConfigureActivity.this.getResources().getColor(R.color.black);
+        }
+    }
+
+    public void radioButtonPeriodClickListener(View view) {
         RadioButton checkedRadioButton = (RadioButton) view;
         switch (checkedRadioButton.getId()) {
             case R.id.every_day:

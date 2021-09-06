@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -9,34 +11,76 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:textSize="20sp"
+        android:textStyle="bold"
         android:text="@string/configure" />
 
-    <EditText
-        android:id="@+id/appwidget_text"
+    <TextView
+        android:id="@+id/words_count_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text" />
+        android:text="@string/wordsCountLbl" />
+
+    <Spinner
+        android:id="@+id/words_count_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Update period" />
+
     <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <RadioButton
             android:id="@+id/every_day"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="radioButtonClickListener"
-            android:text="@string/oncePer24hrsUpdrBtn"/>
+            android:onClick="radioButtonPeriodClickListener"
+            android:text="@string/radioBtnDaily"/>
         <RadioButton
             android:id="@+id/every_three_days"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="radioButtonClickListener"
-            android:text="@string/oncePer3DaysUpdrBtn"/>
+            android:onClick="radioButtonPeriodClickListener"
+            android:text="@string/radioBtnThreeDays"/>
         <RadioButton
             android:id="@+id/every_monday"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:onClick="radioButtonClickListener"
-            android:text="@string/oncePerWeekUpdrBtn"/>
+            android:onClick="radioButtonPeriodClickListener"
+            android:text="@string/radioBtnWeekly"/>
+    </RadioGroup>
+
+    <TextView
+        android:id="@+id/textViewColor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/colorLbl" />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RadioButton
+            android:id="@+id/white_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="radioButtonColorClickListener"
+            android:text="@string/radioBtnWhite" />
+
+        <RadioButton
+            android:id="@+id/black_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="radioButtonColorClickListener"
+            android:text="@string/RadioBtnBlack" />
+
     </RadioGroup>
 
     <Button
@@ -46,4 +90,6 @@
         android:layout_marginTop="8dp"
         android:text="@string/add_widget" />
 
+
 </LinearLayout>
+
