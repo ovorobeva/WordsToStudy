@@ -94,10 +94,10 @@ public class AppWidget extends AppWidgetProvider {
 
         WordsClient wordsClient = WordsClient.getWordsClient();
         if (isAdditional) {
-            int wordsCount = (loadWordsFromPref(context).length() - loadWordsFromPref(context).replace(" - ", "").length()) / 3;
-            if (wordsCount < loadSettingFromPref(WORDS_COUNT, context)) {
-                wordsCount = loadSettingFromPref(WORDS_COUNT, context) - wordsCount;
-                wordsClient.getWords(wordsCount, context, appWidgetManager, views, isAdditional);
+            int savedWordsCount = (loadWordsFromPref(context).length() - loadWordsFromPref(context).replace(" - ", "").length()) / 3;
+            if (savedWordsCount < loadSettingFromPref(WORDS_COUNT, context)) {
+                int delta = loadSettingFromPref(WORDS_COUNT, context) - savedWordsCount;
+                wordsClient.getWords(delta, context, appWidgetManager, views, isAdditional);
             } else {
 
                 StringBuilder currentWords = new StringBuilder();
@@ -113,7 +113,6 @@ public class AppWidget extends AppWidgetProvider {
                 Log.d(TAG, "onResponse: words are: " + words);
 
                 views.setTextViewText(R.id.words_edit_text, words);
-                saveWordsToPref(words.toString(), context);
             }
         } else {
 
