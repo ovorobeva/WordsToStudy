@@ -39,6 +39,7 @@ public class AppWidget extends AppWidgetProvider {
     static final String TAG = "Custom logs";
     private static final Scheduler scheduler = Scheduler.getScheduler();
     public static boolean isTextUpdate;
+    public static boolean isAdditional;
     //todo: to fix colors when first changed
     //todo: to fix first words update
     //todo: to fix some words like que by its frequency in the service
@@ -55,38 +56,22 @@ public class AppWidget extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
-        if (!isTextUpdate) {
-            String words = loadWordsFromPref(context);
-            if (words == null)
-                words = context.getResources().getString(R.string.appwidget_text);
+        String words = loadWordsFromPref(context);
+        if (words == null)
+            words = context.getResources().getString(R.string.appwidget_text);
 
-            views.setTextViewText(R.id.words_edit_text, words);
+        views.setTextViewText(R.id.words_edit_text, words);
 
-            int isColorChanged = loadSettingFromPref(IS_COLOR_CHANGED, context);
-            int isWordCountChanged = loadSettingFromPref(IS_WORD_COUNT_CHANGED, context);
-            int isPeriodChanged = loadSettingFromPref(IS_PERIOD_CHANGED, context);
-            Log.d(TAG, "updateAppWidget: isColorChanged = " + isColorChanged);
-            Log.d(TAG, "updateAppWidget: isWordCountChanged = " + isWordCountChanged);
-            Log.d(TAG, "updateAppWidget: isPeriodChanged = " + isPeriodChanged);
-
-            if (isColorChanged == 1) {
-                int color = loadColorFromPref(appWidgetId, context);
-                views.setTextColor(R.id.words_edit_text, color);
-            }
-
-            if (isWordCountChanged == 1 && isPeriodChanged == 0) {
-                updateTextAppWidget(context, appWidgetManager, views, true);
-                //       Toast.makeText(context, R.string.wordsCountChangedMsg, Toast.LENGTH_SHORT).show();
-
-            }
-
-            if (isPeriodChanged == 1)
-                updateTextAppWidget(context, appWidgetManager, views, false);
-        } else {
+        if (isTextUpdate) {
+            Log.d(TAG, "updateAppWidget: start text update...");
             isTextUpdate = false;
-            updateTextAppWidget(context, appWidgetManager, views, false);
+            updateTextAppWidget(context, appWidgetManager, views, isAdditional);
         }
+        int color = loadColorFromPref(appWidgetId, context);
+        views.setTextColor(R.id.words_edit_text, color);
+
         appWidgetManager.updateAppWidget(appWidgetId, views);
+
     }
 
 
@@ -105,7 +90,7 @@ public class AppWidget extends AppWidgetProvider {
 
                 StringBuilder words = new StringBuilder();
                 int count = 0;
-                for (int i = 0; count < loadSettingFromPref(WORDS_COUNT, context); i++){
+                for (int i = 0; count < loadSettingFromPref(WORDS_COUNT, context); i++) {
                     if (currentWords.charAt(i) == '\n') count++;
                     words.append(currentWords.charAt(i));
                 }
@@ -116,48 +101,51 @@ public class AppWidget extends AppWidgetProvider {
             }
         } else {
 
-        Calendar lastUpdate = Calendar.getInstance();
-        lastUpdate.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
-        Log.d(TAG, "updateTextAppWidget: loaded last update is: " + lastUpdate.getTime());//now
+            Calendar lastUpdate = Calendar.getInstance();
+            lastUpdate.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
+            Log.d(TAG, "updateTextAppWidget: loaded last update is: " + lastUpdate.getTime());//now
 
-        Calendar nextUpdate = Calendar.getInstance();
-        nextUpdate.setTimeInMillis(loadUpdateTimeFromPref(NEXT, context));
-        Log.d(TAG, "updateTextAppWidget: loaded next update is: " + nextUpdate.getTime());//now
+            Calendar nextUpdate = Calendar.getInstance();
+            nextUpdate.setTimeInMillis(loadUpdateTimeFromPref(NEXT, context));
+            Log.d(TAG, "updateTextAppWidget: loaded next update is: " + nextUpdate.getTime());
 
-        int period = loadSettingFromPref(PERIOD, context);
-        Log.d(TAG, "updateTextAppWidget: period is: " + period + " days");//1
+            int period = loadSettingFromPref(PERIOD, context);
+            Log.d(TAG, "updateTextAppWidget: period is: " + period + " days");//1
 
-        if (nextUpdate.before(Calendar.getInstance()) || nextUpdate.equals(Calendar.getInstance())) { //equals = true
-            Log.d(TAG, "updateTextAppWidget: do update");
-            scheduler.cancelSchedule();//cancelled
+            if (nextUpdate.before(Calendar.getInstance()) || nextUpdate.equals(Calendar.getInstance())) {
+                Log.d(TAG, "updateTextAppWidget: do update");
+                scheduler.cancelSchedule();//cancelled
 
-            int wordsCount = loadSettingFromPref(WORDS_COUNT, context); //3
+                int wordsCount = loadSettingFromPref(WORDS_COUNT, context);
 
-            views.setTextViewText(R.id.words_edit_text, "words");
-            wordsClient.getWords(wordsCount, context, appWidgetManager, views, false); //3 new words, update is complete
-            lastUpdate = Calendar.getInstance(); //lastUpdate = now
-            saveUpdateTimeToPref(lastUpdate, LAST, context); //lu = now saved
+
+                views.setTextViewText(R.id.words_edit_text, context.getString(R.string.appwidget_text));
+
+                wordsClient.getWords(wordsCount, context, appWidgetManager, views, false);
+                lastUpdate = Calendar.getInstance();
+                saveUpdateTimeToPref(lastUpdate, LAST, context);
+            }
+            Log.d(TAG, "updateTextAppWidget: last update was on: " + lastUpdate.getTime());
+
+            nextUpdate = lastUpdate;
+
+            if (period == EVERY_MONDAY) {
+                nextUpdate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            }
+
+            nextUpdate.set(Calendar.MINUTE, 0);
+            nextUpdate.set(Calendar.HOUR_OF_DAY, 0);
+            nextUpdate.set(Calendar.MILLISECOND, 0);
+            nextUpdate.set(Calendar.SECOND, 0);
+
+            nextUpdate.add(Calendar.DAY_OF_MONTH, period);
+
+            saveUpdateTimeToPref(nextUpdate, NEXT, context);
+
+            Log.d(TAG, "updateTextAppWidget: next update will be on: " + nextUpdate.getTime());
+            scheduler.scheduleNextUpdate(context, nextUpdate);
         }
-        Log.d(TAG, "updateTextAppWidget: last update was on: " + lastUpdate.getTime());
-
-        nextUpdate = lastUpdate;
-
-        if (period == EVERY_MONDAY) {
-            nextUpdate.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        }
-
-        nextUpdate.set(Calendar.MINUTE, 0);
-        nextUpdate.set(Calendar.HOUR_OF_DAY, 0);
-        nextUpdate.set(Calendar.MILLISECOND, 0);
-        nextUpdate.set(Calendar.SECOND, 0);
-
-        nextUpdate.add(Calendar.DAY_OF_MONTH, period);
-
-        saveUpdateTimeToPref(nextUpdate, NEXT, context);
-
-        Log.d(TAG, "updateTextAppWidget: next update will be on: " + nextUpdate.getTime());
-        scheduler.scheduleNextUpdate(context, nextUpdate);
-    }}
+    }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
@@ -200,6 +188,7 @@ public class AppWidget extends AppWidgetProvider {
             AppWidgetManager manager = AppWidgetManager.getInstance(context);
             int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             isTextUpdate = true;
+            isAdditional = false;
             onUpdate(context, manager, ids);
         }
 

@@ -14,6 +14,7 @@ import android.widget.RadioButton;
 import android.widget.Spinner;
 
 import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
+import static com.github.ovorobeva.wordstostudy.AppWidget.isAdditional;
 import static com.github.ovorobeva.wordstostudy.AppWidget.isTextUpdate;
 import static com.github.ovorobeva.wordstostudy.AppWidget.updateAppWidget;
 import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
@@ -84,8 +85,11 @@ public class ConfigureActivity extends Activity {
             saveSettingToPref(changed, IS_WORD_COUNT_CHANGED, context);
             changed = isPeriodChanged ? 1 : 0;
             saveSettingToPref(changed, IS_PERIOD_CHANGED, context);
+            isTextUpdate = isWordCountChanged || isPeriodChanged;
+            isAdditional = isWordCountChanged && !isPeriodChanged;
 
-            isTextUpdate = false;
+            Log.d(TAG, "onClick: isTextUpdate required = " + isTextUpdate);
+
             updateAppWidget(context, appWidgetManager, mAppWidgetId);
             Intent resultValue = new Intent();
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
