@@ -183,14 +183,20 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
         if (intent.getAction().equals(ACTION_SCHEDULED_UPDATE)) {
             Log.d(TAG, "The time to update has come");
-            AppWidgetManager manager = AppWidgetManager.getInstance(context);
-            int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
             isTextUpdate = true;
             isAdditional = false;
             onUpdate(context, manager, ids);
         }
+        if ((intent.getAction()).equals("android.intent.action.BOOT_COMPLETED")) {
+            isTextUpdate = true;
+            isAdditional = false;
+            onUpdate(context, manager, ids);
+        }
+
 
     }
 
