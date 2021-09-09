@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 
@@ -25,8 +26,13 @@ import static com.github.ovorobeva.wordstostudy.Preferences.WORDS_COUNT;
 import static com.github.ovorobeva.wordstostudy.Preferences.arePrefsEmpty;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadTextFontStyleFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveSettingToPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.saveTextFontStyleToPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsColorToPref;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The configuration screen for the {@link AppWidget NewAppWidget} AppWidget.
@@ -44,6 +50,7 @@ public class ConfigureActivity extends Activity {
     private int period;
     private int color;
     private int wordCount;
+    private Set<String> fontStyles;
 
 
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
@@ -58,7 +65,9 @@ public class ConfigureActivity extends Activity {
             Log.d(TAG, "onClick: prefs are empty: " + arePrefsEmpty(context));
 
             if (!arePrefsEmpty(context)) {
-                if (loadColorFromPref(mAppWidgetId, context) != color) isColorChanged = true;
+                if (loadColorFromPref(mAppWidgetId, context) != color ||
+                loadTextFontStyleFromPref(mAppWidgetId, context).equals(fontStyles))
+                    isColorChanged = true;
                 if (loadSettingFromPref(Preferences.WORDS_COUNT, context) != wordCount)
                     isWordCountChanged = true;
                 if (loadSettingFromPref(Preferences.PERIOD, context) != period)
@@ -75,6 +84,7 @@ public class ConfigureActivity extends Activity {
             saveSettingToPref(period, Preferences.PERIOD, context);
             saveSettingToPref(wordCount, Preferences.WORDS_COUNT, context);
             saveWordsColorToPref(color, mAppWidgetId, context);
+            saveTextFontStyleToPref(fontStyles, mAppWidgetId, context);
 
             Log.d(TAG, "onClick: settings saved. New values are: \n period: " + loadSettingFromPref(PERIOD, context)
                     + "\n words count: " + loadSettingFromPref(WORDS_COUNT, context)
@@ -172,9 +182,15 @@ public class ConfigureActivity extends Activity {
         color = loadColorFromPref(mAppWidgetId, ConfigureActivity.this);
         period = loadSettingFromPref(Preferences.PERIOD, ConfigureActivity.this);
         wordCount = loadSettingFromPref(Preferences.WORDS_COUNT, ConfigureActivity.this);
+        fontStyles = loadTextFontStyleFromPref(mAppWidgetId, ConfigureActivity.this);
+
+        CheckBox checkBoxFontStyle = findViewById(R.id.checkBoxBold);
+        checkBoxFontStyle.setChecked(fontStyles.contains("Bold"));
+
+        checkBoxFontStyle = findViewById(R.id.checkBoxItalic);
+        checkBoxFontStyle.setChecked(fontStyles.contains("Italic"));
 
         Spinner wordsCountText = findViewById(R.id.words_count_edit_text);
-
         switch (wordCount) {
             case 5:
                 wordsCountText.setSelection(1);
@@ -232,5 +248,19 @@ public class ConfigureActivity extends Activity {
             case R.id.every_monday:
                 period = EVERY_MONDAY;
         }
+    }
+
+    public void checkBoxFontStyleBoldListener(View view) {
+        CheckBox checkBox = (CheckBox) view;
+        if (checkBox.isChecked()){
+            fontStyles.add("Bold");
+        } else fontStyles.remove("Bold");
+    }
+
+    public void checkBoxFontStyleItalicListener(View view) {
+        CheckBox checkBox = (CheckBox) view;
+        if (checkBox.isChecked()){
+            fontStyles.add("Italic");
+        } else fontStyles.remove("Italic");
     }
 }

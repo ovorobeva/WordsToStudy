@@ -13,4 +13,8 @@
     <string name="RadioBtnBlack">Black</string>
     <string name="wordsCountLbl">Count of words</string>
     <string name="wordsCountChangedMsg">New words count will be applied on next update</string>
+    <string name="fontStyleBold">Bold</string>
+    <string name="fontStyleItalic">Italic</string>
+    <string name="fontStyleUnderlined">Underlined</string>
+    <string name="fontStyleTypelbl">Choose fontStyle</string>
 </resources>

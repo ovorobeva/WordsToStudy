@@ -6,11 +6,16 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
+import android.text.SpannableString;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.Calendar;
+import java.util.Set;
 
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_MONDAY;
 import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
@@ -24,6 +29,7 @@ import static com.github.ovorobeva.wordstostudy.Preferences.clearPrefs;
 import static com.github.ovorobeva.wordstostudy.Preferences.deleteWordsColorFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadColorFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadSettingFromPref;
+import static com.github.ovorobeva.wordstostudy.Preferences.loadTextFontStyleFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
@@ -69,6 +75,19 @@ public class AppWidget extends AppWidgetProvider {
         }
         int color = loadColorFromPref(appWidgetId, context);
         views.setTextColor(R.id.words_edit_text, color);
+
+        Set<String> fontStyle = loadTextFontStyleFromPref(appWidgetId, context);
+        SpannableString text = new SpannableString(loadWordsFromPref(context));
+        if (fontStyle.contains("Bold") && !fontStyle.contains("Italic"))
+        text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length() - 1, 0);
+        if (fontStyle.contains("Bold") && fontStyle.contains("Italic"))
+            text.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), 0, text.length() - 1, 0);
+        if (!fontStyle.contains("Bold") && fontStyle.contains("Italic"))
+            text.setSpan(new StyleSpan(Typeface.ITALIC), 0, text.length() - 1, 0);
+        if (fontStyle.isEmpty())
+            text.setSpan(new StyleSpan(Typeface.NORMAL), 0, text.length() - 1, 0);
+
+        views.setTextViewText(R.id.words_edit_text, text);
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
 

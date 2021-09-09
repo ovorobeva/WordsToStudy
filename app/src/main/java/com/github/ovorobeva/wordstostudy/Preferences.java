@@ -10,6 +10,9 @@ import android.util.Log;
 import android.widget.ExpandableListView;
 
 import java.util.Calendar;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static com.github.ovorobeva.wordstostudy.AppWidget.TAG;
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_DAY;
@@ -85,6 +88,11 @@ public class Preferences implements Parcelable{
         prefs.apply();
     }
 
+    public static void saveTextFontStyleToPref(Set<String> fontStyles, int id, Context context) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
+        prefs.putStringSet(PREF_PREFIX_KEY + id + "_fontStyle", fontStyles);
+        prefs.apply();
+    }
     public static void saveWordsToPref(String words, Context context) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFS_NAME, 0).edit();
         prefs.putString(PREF_PREFIX_KEY  + "_words", words);
@@ -97,6 +105,11 @@ public class Preferences implements Parcelable{
             return prefs.getInt(PREF_PREFIX_KEY + id + "_color", context.getResources().getColor(R.color.white));
         else return context.getResources().getColor(R.color.white);
 
+    }
+
+    public static Set<String> loadTextFontStyleFromPref(int id, Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, 0);
+            return prefs.getStringSet(PREF_PREFIX_KEY + id + "_fontStyle", new HashSet<>());
     }
 
     public static String loadWordsFromPref(Context context) {
