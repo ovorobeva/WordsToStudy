@@ -10,17 +10,14 @@ import android.graphics.Typeface;
 import android.text.SpannableString;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.view.View;
 import android.widget.RemoteViews;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Set;
 
 import static com.github.ovorobeva.wordstostudy.ConfigureActivity.EVERY_MONDAY;
-import static com.github.ovorobeva.wordstostudy.Preferences.IS_COLOR_CHANGED;
-import static com.github.ovorobeva.wordstostudy.Preferences.IS_PERIOD_CHANGED;
-import static com.github.ovorobeva.wordstostudy.Preferences.IS_WORD_COUNT_CHANGED;
 import static com.github.ovorobeva.wordstostudy.Preferences.LAST;
 import static com.github.ovorobeva.wordstostudy.Preferences.NEXT;
 import static com.github.ovorobeva.wordstostudy.Preferences.PERIOD;
@@ -33,7 +30,6 @@ import static com.github.ovorobeva.wordstostudy.Preferences.loadTextFontStyleFro
 import static com.github.ovorobeva.wordstostudy.Preferences.loadUpdateTimeFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveUpdateTimeToPref;
-import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsToPref;
 import static com.github.ovorobeva.wordstostudy.Scheduler.ACTION_SCHEDULED_UPDATE;
 
 /**
@@ -46,9 +42,6 @@ public class AppWidget extends AppWidgetProvider {
     private static final Scheduler scheduler = Scheduler.getScheduler();
     public static boolean isTextUpdate;
     public static boolean isAdditional;
-    //todo: to fix colors when first changed
-    //todo: to fix first words update
-    //todo: to fix some words like que by its frequency in the service
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
@@ -67,34 +60,44 @@ public class AppWidget extends AppWidgetProvider {
             words = context.getResources().getString(R.string.appwidget_text);
 
         views.setTextViewText(R.id.words_edit_text, words);
+        setTextStyle(views, appWidgetId, context);
 
         if (isTextUpdate) {
             Log.d(TAG, "updateAppWidget: start text update...");
             isTextUpdate = false;
             updateTextAppWidget(context, appWidgetManager, views, isAdditional);
+            setTextStyle(views, appWidgetId, context);
         }
-        int color = loadColorFromPref(appWidgetId, context);
-        views.setTextColor(R.id.words_edit_text, color);
 
-        Set<String> fontStyle = loadTextFontStyleFromPref(appWidgetId, context);
-        SpannableString text = new SpannableString(loadWordsFromPref(context));
-        if (fontStyle.contains("Bold") && !fontStyle.contains("Italic"))
-        text.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length() - 1, 0);
-        if (fontStyle.contains("Bold") && fontStyle.contains("Italic"))
-            text.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), 0, text.length() - 1, 0);
-        if (!fontStyle.contains("Bold") && fontStyle.contains("Italic"))
-            text.setSpan(new StyleSpan(Typeface.ITALIC), 0, text.length() - 1, 0);
-        if (fontStyle.isEmpty())
-            text.setSpan(new StyleSpan(Typeface.NORMAL), 0, text.length() - 1, 0);
 
-        views.setTextViewText(R.id.words_edit_text, text);
+        setTextStyle(views, appWidgetId, context);
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
 
     }
+    static void setTextStyle(RemoteViews views, int appWidgetId, Context context){
+        View v = views.apply(context, null);
+        TextView textView = v.findViewById(R.id.words_edit_text);
+        String text = textView.getText().toString();
+        Set<String> fontStyle = loadTextFontStyleFromPref(appWidgetId, context);
+        SpannableString spannableString = new SpannableString(text);
+        if (fontStyle.contains("Bold") && !fontStyle.contains("Italic"))
+            spannableString.setSpan(new StyleSpan(Typeface.BOLD), 0, text.length() - 1, 0);
+        if (fontStyle.contains("Bold") && fontStyle.contains("Italic"))
+            spannableString.setSpan(new StyleSpan(Typeface.BOLD_ITALIC), 0, text.length() - 1, 0);
+        if (!fontStyle.contains("Bold") && fontStyle.contains("Italic"))
+            spannableString.setSpan(new StyleSpan(Typeface.ITALIC), 0, text.length() - 1, 0);
+        if (fontStyle.isEmpty())
+            spannableString.setSpan(new StyleSpan(Typeface.NORMAL), 0, text.length() - 1, 0);
+
+        int color = loadColorFromPref(appWidgetId, context);
+        views.setTextViewText(R.id.words_edit_text, spannableString);
+        views.setTextColor(R.id.words_edit_text, color);
+    }
 
 
     static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager, RemoteViews views, boolean isAdditional) {
+
 
         WordsClient wordsClient = WordsClient.getWordsClient();
         if (isAdditional) {
@@ -136,7 +139,6 @@ public class AppWidget extends AppWidgetProvider {
                 scheduler.cancelSchedule();//cancelled
 
                 int wordsCount = loadSettingFromPref(WORDS_COUNT, context);
-
 
                 views.setTextViewText(R.id.words_edit_text, context.getString(R.string.appwidget_text));
 

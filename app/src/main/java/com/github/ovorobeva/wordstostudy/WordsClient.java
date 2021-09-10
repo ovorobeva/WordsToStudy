@@ -19,6 +19,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static com.github.ovorobeva.wordstostudy.AppWidget.setTextStyle;
 import static com.github.ovorobeva.wordstostudy.Preferences.loadWordsFromPref;
 import static com.github.ovorobeva.wordstostudy.Preferences.saveWordsToPref;
 
@@ -69,7 +70,7 @@ public class WordsClient {
                     if (response.isSuccessful()) {
                         responseBody.addAll(response.body());
                         Log.d(TAG, "onResponse: Response by the url " + response.raw().request().url() + " is received.\nResponse to process is: " + responseBody);
-                        setWords(responseBody, views, context, isAdditional);
+                        setWords(responseBody, views, context, isAdditional, appWidgetManager);
 
                         final ComponentName cn = new ComponentName(context, AppWidget.class);
                         appWidgetManager.updateAppWidget(cn, views);
@@ -121,7 +122,7 @@ public class WordsClient {
                         randomWords.add(responseBody.get(id));
                     }
                     Log.d(TAG, "onResponse: random words are: " + randomWords);
-                    setWords(randomWords, views, context, isAdditional);
+                    setWords(randomWords, views, context, isAdditional, appWidgetManager);
 
                     final ComponentName cn = new ComponentName(context, AppWidget.class);
                     appWidgetManager.updateAppWidget(cn, views);
@@ -137,7 +138,7 @@ public class WordsClient {
         });
     }
 
-    private void setWords(List<GeneratedWords> randomWords, RemoteViews views, Context context, boolean isAdditional){
+    private void setWords(List<GeneratedWords> randomWords, RemoteViews views, Context context, boolean isAdditional, AppWidgetManager manager){
         List<String> processedResult = new LinkedList<>();
 
         for (GeneratedWords generatedWord : randomWords) {
@@ -153,6 +154,10 @@ public class WordsClient {
         Log.d(TAG, "onResponse: words are: " + words);
 
         views.setTextViewText(R.id.words_edit_text, words);
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
+        for (int id: ids){
+            setTextStyle(views, id, context);
+        }
         saveWordsToPref(words.toString(), context);
     }
 }
