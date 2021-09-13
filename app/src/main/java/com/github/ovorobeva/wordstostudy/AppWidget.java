@@ -121,7 +121,7 @@ public class AppWidget extends AppWidgetProvider {
 
                 views.setTextViewText(R.id.words_edit_text, words);
             }
-        } else {
+        }
 
             Calendar lastUpdate = Calendar.getInstance();
             lastUpdate.setTimeInMillis(loadUpdateTimeFromPref(LAST, context));
@@ -165,7 +165,7 @@ public class AppWidget extends AppWidgetProvider {
 
             Log.d(TAG, "updateTextAppWidget: next update will be on: " + nextUpdate.getTime());
             scheduler.scheduleNextUpdate(context, nextUpdate);
-        }
+
     }
 
     @Override
@@ -189,6 +189,8 @@ public class AppWidget extends AppWidgetProvider {
     public void onEnabled(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
+        isTextUpdate = true;
+        isAdditional = false;
         onUpdate(context, manager, ids);
         Log.d(TAG, "The first widget is created");
     }
