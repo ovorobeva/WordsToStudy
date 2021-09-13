@@ -170,10 +170,7 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-
-
-        //todo: to fix: Widget doesn't update when phone is rebooted
-
+        Log.d(TAG, "onUpdate: start update");
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
@@ -190,6 +187,9 @@ public class AppWidget extends AppWidgetProvider {
 
     @Override
     public void onEnabled(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
+        onUpdate(context, manager, ids);
         Log.d(TAG, "The first widget is created");
     }
 
@@ -213,6 +213,7 @@ public class AppWidget extends AppWidgetProvider {
             onUpdate(context, manager, ids);
         }
         if ((intent.getAction()).equals("android.intent.action.BOOT_COMPLETED")) {
+            Log.d(TAG, "onReceive: Reboot is completed");
             isTextUpdate = true;
             isAdditional = false;
             onUpdate(context, manager, ids);
