@@ -6,10 +6,13 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.OkHttpClient;
@@ -80,9 +83,20 @@ public class WordsClient {
 
                 @Override
                 public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
-                    Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url() + "\n Error is: " + t.getMessage(), t);
-                    t.printStackTrace();
-                    getWordsReserve(wordsCount, context, appWidgetManager, views, isAdditional);
+                    if (t.getClass().equals(ConnectException.class)) {
+                        Log.d(TAG, "onFailure: GET IT");
+                        Timer timer = new Timer();
+                        TimerTask task = new TimerTask() {
+                            @Override
+                            public void run() {
+                                getWords(wordsCount, context, appWidgetManager, views, isAdditional);
+                            }
+                        };
+                        timer.schedule(task, 10000);
+                    } else {
+                        Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url() + "\n Error is: " + t.getMessage(), t);
+                        getWordsReserve(wordsCount, context, appWidgetManager, views, isAdditional);
+                    }
                 }
             }));
         } catch (Exception e) {
@@ -138,7 +152,7 @@ public class WordsClient {
         });
     }
 
-    private void setWords(List<GeneratedWords> randomWords, RemoteViews views, Context context, boolean isAdditional, AppWidgetManager manager){
+    private void setWords(List<GeneratedWords> randomWords, RemoteViews views, Context context, boolean isAdditional, AppWidgetManager manager) {
         List<String> processedResult = new LinkedList<>();
 
         for (GeneratedWords generatedWord : randomWords) {
@@ -155,7 +169,7 @@ public class WordsClient {
 
         views.setTextViewText(R.id.words_edit_text, words);
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
-        for (int id: ids){
+        for (int id : ids) {
             setTextStyle(views, id, context);
         }
         saveWordsToPref(words.toString(), context);

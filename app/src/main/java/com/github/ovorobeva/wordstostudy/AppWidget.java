@@ -56,8 +56,10 @@ public class AppWidget extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.main_layout, pIntent);
 
         String words = loadWordsFromPref(context);
-        if (words == null)
+        if (words == null) {
+            Log.e(TAG, "updateAppWidget: words in prefs are empty");
             words = context.getResources().getString(R.string.appwidget_text);
+        }
 
         views.setTextViewText(R.id.words_edit_text, words);
         setTextStyle(views, appWidgetId, context);
@@ -189,8 +191,6 @@ public class AppWidget extends AppWidgetProvider {
     public void onEnabled(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         int[] ids = manager.getAppWidgetIds(new ComponentName(context, AppWidget.class));
-        isTextUpdate = true;
-        isAdditional = false;
         onUpdate(context, manager, ids);
         Log.d(TAG, "The first widget is created");
     }
