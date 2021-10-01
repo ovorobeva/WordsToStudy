@@ -217,8 +217,9 @@ public class AppWidget extends AppWidgetProvider {
         if ((intent.getAction()).equals("android.intent.action.BOOT_COMPLETED")) {
             Log.d(TAG, "onReceive: Reboot is completed");
             isTextUpdate = true;
-            isAdditional = false;
+            isAdditional = true;
             onUpdate(context, manager, ids);
+            isAdditional = false;
         }
 
 
