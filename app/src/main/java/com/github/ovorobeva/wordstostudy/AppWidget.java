@@ -106,7 +106,7 @@ public class AppWidget extends AppWidgetProvider {
             int savedWordsCount = (loadWordsFromPref(context).length() - loadWordsFromPref(context).replace(" - ", "").length()) / 3;
             if (savedWordsCount < loadSettingFromPref(WORDS_COUNT, context)) {
                 int delta = loadSettingFromPref(WORDS_COUNT, context) - savedWordsCount;
-                wordsClient.getWords(delta, context, appWidgetManager, views, isAdditional);
+                wordsClient.getWords(delta, context, appWidgetManager, views, true);
             } else {
 
                 StringBuilder currentWords = new StringBuilder();
