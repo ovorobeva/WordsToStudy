@@ -7,6 +7,7 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,12 +50,13 @@ public class WordsClient {
 
 
     public void getWords(int wordsCount, Context context, AppWidgetManager appWidgetManager, RemoteViews views, boolean isAdditional) {
+        Log.d(TAG, "getWords: Getting words from API...");
         final VocabularyWordsAPI wordsApi;
 
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
-                .connectTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS);
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(50, TimeUnit.SECONDS)
+                .writeTimeout(50, TimeUnit.SECONDS);
 
         Retrofit.Builder builder = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -84,7 +86,7 @@ public class WordsClient {
                 @Override
                 public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
                     if (t.getClass().equals(ConnectException.class)) {
-                        Log.d(TAG, "onFailure: GET IT");
+                        Log.e(TAG, "onFailure: Something is wrong with the internet connection");
                         Timer timer = new Timer();
                         TimerTask task = new TimerTask() {
                             @Override
@@ -146,8 +148,21 @@ public class WordsClient {
 
             @Override
             public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
-                Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url() + "\n Error is: " + t.getMessage(), t);
-                t.printStackTrace();
+                if (t.getClass().equals(ConnectException.class) || t.getClass().equals(SocketTimeoutException.class)) {
+                    Log.e(TAG, "onFailure: Something is wrong with the internet connection");
+                    Timer timer = new Timer();
+                    TimerTask task = new TimerTask() {
+                        @Override
+                        public void run() {
+                            getWords(wordsCount, context, appWidgetManager, views, isAdditional);
+                        }
+                    };
+                    timer.schedule(task, 10000);
+                } else {
+
+                    Log.e(TAG, "onFailure: Something went wrong during request by url " + call.request().url() + "\n Error is: " + t.getMessage(), t);
+                    t.printStackTrace();
+                }
             }
         });
     }
