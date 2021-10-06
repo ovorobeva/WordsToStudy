@@ -101,12 +101,12 @@ public class AppWidget extends AppWidgetProvider {
     static void updateTextAppWidget(Context context, AppWidgetManager appWidgetManager, RemoteViews views, boolean isAdditional) {
 
 
-        WordsClient wordsClient = WordsClient.getWordsClient();
+        WordsClient wordsClient = WordsClient.getWordsClient(context, appWidgetManager, views);
         if (isAdditional) {
             int savedWordsCount = (loadWordsFromPref(context).length() - loadWordsFromPref(context).replace(" - ", "").length()) / 3;
             if (savedWordsCount < loadSettingFromPref(WORDS_COUNT, context)) {
                 int delta = loadSettingFromPref(WORDS_COUNT, context) - savedWordsCount;
-                wordsClient.getWords(delta, context, appWidgetManager, views, true);
+                wordsClient.getWords(delta, true);
             } else {
 
                 StringBuilder currentWords = new StringBuilder();
@@ -144,7 +144,7 @@ public class AppWidget extends AppWidgetProvider {
 
                 views.setTextViewText(R.id.words_edit_text, context.getString(R.string.appwidget_text));
 
-                wordsClient.getWords(wordsCount, context, appWidgetManager, views, false);
+                wordsClient.getWords(wordsCount, false);
                 lastUpdate = Calendar.getInstance();
                 saveUpdateTimeToPref(lastUpdate, LAST, context);
             }
