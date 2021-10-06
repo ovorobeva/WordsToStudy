@@ -69,6 +69,7 @@ public class WordsClient {
         List<GeneratedWords> responseBody = new ArrayList<>();
         try {
             Call<List<GeneratedWords>> getWordsRequest = wordsApi.sendRequest(wordsCount);
+            Log.d(TAG, "getWords: Sending request " + getWordsRequest.request());
             getWordsRequest.enqueue((new Callback<List<GeneratedWords>>() {
                 @Override
                 public void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
@@ -119,6 +120,7 @@ public class WordsClient {
         wordsApi = retrofit.create(WordsApi.class);
 
         Call<List<GeneratedWords>> getWordsRequest = wordsApi.sendRequest();
+        Log.d(TAG, "getWords: Sending reserved request " + getWordsRequest.request());
         getWordsRequest.enqueue(new Callback<List<GeneratedWords>>() {
             @Override
             public void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
