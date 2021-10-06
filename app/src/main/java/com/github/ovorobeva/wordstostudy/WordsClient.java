@@ -54,9 +54,9 @@ public class WordsClient {
         final VocabularyWordsAPI wordsApi;
 
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(50, TimeUnit.SECONDS)
-                .writeTimeout(50, TimeUnit.SECONDS);
+                .connectTimeout(0, TimeUnit.SECONDS)
+                .readTimeout(0, TimeUnit.SECONDS)
+                .writeTimeout(0, TimeUnit.SECONDS);
 
         Retrofit.Builder builder = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -86,7 +86,7 @@ public class WordsClient {
                 @Override
                 public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
                     if (t.getClass().equals(ConnectException.class)) {
-                        Log.e(TAG, "onFailure: Something is wrong with the internet connection");
+                        Log.e(TAG, "onFailure: Something is wrong with the internet connection: \n" + t.getMessage());
                         Timer timer = new Timer();
                         TimerTask task = new TimerTask() {
                             @Override
@@ -121,7 +121,7 @@ public class WordsClient {
         Call<List<GeneratedWords>> getWordsRequest = wordsApi.sendRequest();
         getWordsRequest.enqueue(new Callback<List<GeneratedWords>>() {
             @Override
-            public synchronized void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
+            public void onResponse(Call<List<GeneratedWords>> call, Response<List<GeneratedWords>> response) {
 
                 if (response.isSuccessful()) {
                     responseBody.addAll(response.body());
@@ -149,7 +149,7 @@ public class WordsClient {
             @Override
             public void onFailure(Call<List<GeneratedWords>> call, Throwable t) {
                 if (t.getClass().equals(ConnectException.class) || t.getClass().equals(SocketTimeoutException.class)) {
-                    Log.e(TAG, "onFailure: Something is wrong with the internet connection");
+                    Log.e(TAG, "onFailure: Something is wrong with the internet connection: \n" + t.getMessage());
                     Timer timer = new Timer();
                     TimerTask task = new TimerTask() {
                         @Override
