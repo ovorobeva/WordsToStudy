@@ -17,9 +17,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
-import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -56,18 +54,12 @@ public class WordsClient {
         Log.d(TAG, "getWords: Getting words from API...");
         final VocabularyWordsAPI wordsApi;
 
-        OkHttpClient.Builder httpClient = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS);
-
         String BASE_URL = "http://130.61.252.79:8080/";
-        Retrofit.Builder builder = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create());
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
 
-        builder.client(httpClient.build());
-        Retrofit retrofit = builder.build();
         wordsApi = retrofit.create(VocabularyWordsAPI.class);
 
         List<GeneratedWords> responseBody = new ArrayList<>();
